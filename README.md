@@ -3,6 +3,25 @@
 You run this bot completely at your own risk! I won't take any responsibility for what happens to you and your money/crypto.
 Do not share your api keys and any privat details!
 
+## Table of Content
+
+1. [Overview](#overview)
+2. [Features](#features)
+    - [DCA - Service](#dca---service)
+    - [Mail - Service](#mail---service)
+3.  [Deployment](#deployment)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+4. [Development](#development)
+5. [Miscellaneous](#miscellaneous)
+    - [Tipps](#tipps)
+    - [Contributing](#contributing)
+    - [Bug Report](#bug-report)
+6. [Donation](#donation)
+7. [License](#license)
+8. [Acknowledgements](#acknowledgements)
+
 ## Overview
 kraken-dca-bot is an open-source Dollar-Cost Averaging (DCA) bot for the Kraken cryptocurrency exchange. It allows users to automate their cryptocurrency investments by periodically purchasing a fixed amount of a chosen cryptocurrency. It is designed to run in a docker container 24/7. Mine runs on a Raspberry Pi 4 headless with VS Code Remote for development and deploying.
 
@@ -43,8 +62,9 @@ Based on this orders an html mail will be constructed with the orders which are 
 Then it will wait about 24 hours until the next mail should be sent.
 (This design was chosen over a cronjob, because there will be more features in the future, like responsing to mail/rcs commands...)
 
-## Prerequisites
-- .NET 8.0 SDK
+## Deployment
+Docker Registry is coming soon...
+### Prerequisites
 - Kraken Pro API Keys
     - my-dca-bot: 
         - Funds Permission: Query
@@ -55,7 +75,7 @@ Then it will wait about 24 hours until the next mail should be sent.
         - Orders and Trades: Query closed orders & trades
 - Google Account with 16 char Application Password. (Required for mail-service)
 
-## Installation
+### Installation
 1. Clone the repository:
     ```bash
     git clone https://github.com/Zuricos/kraken-dca-bot.git
@@ -81,7 +101,7 @@ Then it will wait about 24 hours until the next mail should be sent.
 
 5. Make a standing order to kraken for the default topup day of month.
 
-## Configuration
+### Configuration
 Here are the configuration explained. For deployment set them to your liking in the docker compose. For development set them in a .env file in the root directory of the repo.
 ```bash
 OrderOptions__Type=Limit # Limit or Market supported
@@ -135,19 +155,34 @@ Afterwards make sure to reset the 'secrets-template.json' to not make a commit w
 Further information about develoment with secrets can be found here:
 [https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-9.0&tabs=linux](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-9.0&tabs=linux)
 
-## Tipps
+## Miscellaneous
+### Tipps
 Create a Subaccount for the DCA and create the api keys for it. If you want to trade without the bot intercept your trading wallet and use the money which is designed for trading.
 -> See [https://docs.kraken.com/api/docs/rest-api/create-subaccount](https://docs.kraken.com/api/docs/rest-api/create-subaccount)
 
-## Contributing
+### Contributing
 Contributions are welcome! Just reach out to me over an issue or the like.
 
-## Bug Report
+### Bug Report
 If you encounter a bug. Feel free to open an issue. As I ran this by myself I am interested into keeping it bug free.
 Please provide further information like your configuration (WITHOUT SECRETS!) and logs from the issue (You can delete the sensible informations)
 
+## Donation
+If you find this project valuable and it saves you some dimes or hassle, feel free to donate a few satoshis to support my work. Your contributions are greatly appreciated and help me continue to improve and maintain the project.
+
+### Bitcoin Donation
+
+You can send Bitcoin to the following address:
+
+<img src="btc_adress_qr.png" alt="Bitcoin Donation QR Code" width="200">
+
+```
+bc1qaaskkfljrd3fquq5vzzfjsqvh48fq0jus8k8e4
+```
+Thank you for your support! I am truly grateful!
+
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a custom license - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 - [Kraken API](https://www.kraken.com/features/api)
