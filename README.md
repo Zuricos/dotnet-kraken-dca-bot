@@ -1,5 +1,5 @@
 # kraken-dca-bot - Made in Switzerland
-## LEGAL-DISCLAIMER:
+## LEGAL-DISCLAIMER
 You run this bot completely at your own risk! I won't take any responsibility for what happens to you and your money/crypto.
 Do not share your api keys and any privat details!
 
@@ -64,12 +64,13 @@ Then it will wait about 24 hours until the next mail should be sent.
 
 ## Deployment
 Docker Registry is coming soon...
+
 ### Prerequisites
 - Kraken Pro API Keys
-    - my-dca-bot: 
+    - DCA - Service: 
         - Funds Permission: Query
         - Orders and Trades: Create & Modify orders
-    - my-notification-bot:
+    - Mail - Service:
         - Funds Permission: Query
         - Orders and Trades: Query open orders & trades
         - Orders and Trades: Query closed orders & trades
