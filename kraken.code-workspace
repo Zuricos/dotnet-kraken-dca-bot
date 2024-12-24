@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "Kbot.DcaService"
+		},
+		{
+			"path": "Kbot.Common"
+		},
+		{
+			"path": "Tests"
+		},
+		{
+			"path": "Kbot.MailService"
+		},
+		{
+			"name": "ProjectFiles",
+			"path": "."
+		}
+	],
+	"settings": {
+		"dotnet.defaultSolution": "Kbot.sln",
+		"files.exclude": {
+			"Kbot.DcaService": true,
+			"Kbot.Common": true,
+			"Tests": true,
+			"Kbot.MailService": true,
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true
+		}
+	}
+}

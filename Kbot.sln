@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.Common", "Kbot.Common\Kbot.Common.csproj", "{FF761EC0-0436-4EB2-815C-3C63ACBA85A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.Common.Test", "Tests\Kbot.Common.Test\Kbot.Common.Test.csproj", "{98963DC1-FC34-4196-B4AD-DC143E40EAB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.DcaService", "Kbot.DcaService\Kbot.DcaService.csproj", "{3A0D167C-2DD0-4B0A-9C08-4CA97FBCC077}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{16A98844-1E90-4576-964F-10ED1442719A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.DcaService.Test", "Tests\Kbot.DcaService.Test\Kbot.DcaService.Test.csproj", "{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.MailService", "Kbot.MailService\Kbot.MailService.csproj", "{CA2525A4-13F3-4401-ADA1-DABFA50663F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kbot.MailService.Test", "Tests\Kbot.MailService.Test\Kbot.MailService.Test.csproj", "{D4F62052-985A-47B6-94E1-7D846A782BEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF761EC0-0436-4EB2-815C-3C63ACBA85A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF761EC0-0436-4EB2-815C-3C63ACBA85A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF761EC0-0436-4EB2-815C-3C63ACBA85A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF761EC0-0436-4EB2-815C-3C63ACBA85A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98963DC1-FC34-4196-B4AD-DC143E40EAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98963DC1-FC34-4196-B4AD-DC143E40EAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98963DC1-FC34-4196-B4AD-DC143E40EAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98963DC1-FC34-4196-B4AD-DC143E40EAB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A0D167C-2DD0-4B0A-9C08-4CA97FBCC077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A0D167C-2DD0-4B0A-9C08-4CA97FBCC077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A0D167C-2DD0-4B0A-9C08-4CA97FBCC077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A0D167C-2DD0-4B0A-9C08-4CA97FBCC077}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA2525A4-13F3-4401-ADA1-DABFA50663F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA2525A4-13F3-4401-ADA1-DABFA50663F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA2525A4-13F3-4401-ADA1-DABFA50663F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA2525A4-13F3-4401-ADA1-DABFA50663F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4F62052-985A-47B6-94E1-7D846A782BEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4F62052-985A-47B6-94E1-7D846A782BEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4F62052-985A-47B6-94E1-7D846A782BEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4F62052-985A-47B6-94E1-7D846A782BEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1BBD6A41-B551-4383-AB70-77AF0AFE0DCA} = {16A98844-1E90-4576-964F-10ED1442719A}
+		{98963DC1-FC34-4196-B4AD-DC143E40EAB1} = {16A98844-1E90-4576-964F-10ED1442719A}
+		{D4F62052-985A-47B6-94E1-7D846A782BEE} = {16A98844-1E90-4576-964F-10ED1442719A}
+	EndGlobalSection
+EndGlobal

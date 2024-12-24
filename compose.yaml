@@ -1,0 +1,64 @@
+services:
+  dca-service:
+    build:
+      context: .
+      dockerfile: Kbot.DcaService/Dockerfile
+    restart: unless-stopped
+    secrets:
+      - dca-secrets
+    volumes:
+      - state:/app/state:rw
+      - logs:/app/logs:rw
+    environment:
+      OrderOptions__Type: Limit
+      OrderOptions__Fee: 0.4
+      OrderOptions__MinOrderVolume: 0.00005
+      OrderOptions__AskMultiplier: 1.00001
+      OrderOptions__CryptoPair: XBTCHF
+      BalanceOptions__DefaultTopupDayOfMonth: 26
+      BalanceOptions__ReserveFiat: 0
+      WaitOptions__MinWaitTime: 00:00:10
+      WaitOptions__MaxWaitTime: 01:00:00
+      CultureOptions__CultureString: "de-CH"
+      CultureOptions__CountyCode: "CH-ZH"
+      CultureOptions__Fiat: CHF
+
+  mail-service:
+    build:
+      context: .
+      dockerfile: Kbot.MailService/Dockerfile
+    restart: unless-stopped
+    secrets:
+      - mail-secrets
+    volumes:
+      - logs:/app/logs:rw
+    environment:
+      MailOptions__HourOfDay: 6
+      MailOptions__CryptoPair: XBTCHF
+      MailOptions__Crypto: BTC
+      MailOptions__Fiat: CHF
+      ConnectionStrings__Kraken: "Host=postgres;Database=Kbot;Username=postgres;Password=NotYourK3yNotYourCoin$"
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: Kbot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: NotYourK3yNotYourCoin$
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+
+secrets:
+  dca-secrets:
+    file: ./docker.dca.secrets.json
+  mail-secrets:
+    file: ./docker.mail.secrets.json
+
+volumes:
+  pg_data:
+  state:
+  logs:
