@@ -141,7 +141,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-       - name: Commit new Version
+      - name: Commit new Version
         if: env.PRIVATE_REPO != 'true'
         run: |
           git config --local user.email "action@github.com"
