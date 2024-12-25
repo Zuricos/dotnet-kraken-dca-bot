@@ -12,7 +12,6 @@ namespace Kbot.DcaService;
 
 public class DcaWorker(
     ILogger<DcaWorker> logger,
-    HolidayService holidayService,
     TimeComputeService computeService,
     KrakenClient krakenClient,
     IOptions<OrderOptions> orderOptions,
@@ -20,7 +19,6 @@ public class DcaWorker(
     IOptions<CultureOptions> cultureOptions,
     IOptions<WaitOptions> waitOptions) : BackgroundService
 {
-    private const int SATS = 100_000_000;
     private DcaState State { get; set; } = null!;
 
     // Options accessors for convenience
