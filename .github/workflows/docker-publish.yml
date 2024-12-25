@@ -130,6 +130,17 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.REPO}}/mail-service
           subject-digest: ${{ steps.push_mail.outputs.digest }}
           push-to-registry: true   
+      
+      - name: Commit new Version
+        if: env.PRIVATE_REPO == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add VERSION
+          git commit -m "Bump version to ${{ env.NEW_VERSION }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Tag changes
         run: |
@@ -141,13 +152,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit new Version
-        if: env.PRIVATE_REPO != 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add VERSION
-          git commit -m "Bump version to ${{ env.NEW_VERSION }}"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
