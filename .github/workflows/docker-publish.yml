@@ -36,20 +36,20 @@ jobs:
 
       - name: Set variables
         run: |
+          VER=$(cat VERSION)
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          echo "NEW_VERSION=$VER" >> $GITHUB_ENV
           if [[ "${{ env.REPO }}" == *"private"* ]]; then
             echo "PRIVATE_REPO=true" >> $GITHUB_ENV
-            VER=$(cat PRIVATE_VERSION)
           else
             echo "PRIVATE_REPO=false" >> $GITHUB_ENV
-            VER=$(cat VERSION)
           fi
-          echo "VERSION=$VER" >> $GITHUB_ENV
-
 
       - name: Update major version
         if: |
           startsWith(github.event.head_commit.message, 'major') &&
-          github.event_name != 'workflow_dispatch'
+          github.event_name != 'workflow_dispatch' &&
+          env.PRIVATE_REPO == 'true'
         run: |
           IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
           new_major=$((major + 1))
@@ -60,7 +60,8 @@ jobs:
       - name: Update minor version
         if: |
           startsWith(github.event.head_commit.message, 'feat') &&
-          github.event_name != 'workflow_dispatch'
+          github.event_name != 'workflow_dispatch' &&
+          env.PRIVATE_REPO == 'true'
         run: |
           IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
           new_minor=$((minor + 1))
@@ -70,8 +71,9 @@ jobs:
         
       - name: Update patch version
         if: |
-          !startsWith(github.event.head_commit.message, 'feat') ||
-          github.event_name == 'workflow_dispatch'
+          (!startsWith(github.event.head_commit.message, 'feat') ||
+          github.event_name == 'workflow_dispatch') &&
+          env.PRIVATE_REPO == 'true'
         run: |
           IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
           new_patch=$((patch + 1))
@@ -129,14 +131,23 @@ jobs:
           subject-digest: ${{ steps.push_mail.outputs.digest }}
           push-to-registry: true   
           
-      - name: Commit changes
+      - name: Tag changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+       - name: Commit new Version
+        if: env.PRIVATE_REPO != 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add VERSION
           git commit -m "Bump version to ${{ env.NEW_VERSION }}"
-          git tag ${{ env.NEW_VERSION }}
-          git push origin ${{ env.NEW_VERSION }}
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
