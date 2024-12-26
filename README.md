@@ -77,16 +77,15 @@ Docker Registry is coming soon...
 - Google Account with 16 char Application Password. (Required for mail-service)
 
 ### Installation
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/Zuricos/kraken-dca-bot.git
-    cd kraken-dca-bot
-    ```
-2. Open the docker_compose.yaml and set the environment variable to your liking. Look [Configuration](#configuration) for explanation of the configs.
+1. Copy the compose.yaml and the docker.*.secrets-template.json files to a directory:
 
-    a. If notification bot is not what you want, removed it from the yaml file as it is optional
+2. In the shell go to this directory.
 
-3. Copy each docker.*.secrets-template.json like:
+3. Open the compose.yaml and set the environment variable to your liking. Look [Configuration](#configuration) for explanation of the configs.
+
+    a. If mail-service bot is not what you want, removed it from the yaml file as it is optional also the postgre is then not needed.
+
+4. Copy each docker.*.secrets-template.json like:
 
     ```bash
     cp docker.dca.secrets-template.json docker.dca.secrets.json
@@ -95,15 +94,34 @@ Docker Registry is coming soon...
     And fill them with your secrets. 
     Note: As long as a file ends with *secrets.json it is ignored in git.
 
-4. Run 
+5. Run 
     ```bash
-    docker-compose up --build --detached
+    docker compose up --detached
     ```
 
-5. Make a standing order to kraken for the default topup day of month.
+6. Make a standing order to kraken for the default topup day of month.
 
 ### Configuration
 Here are the configuration explained. For deployment set them to your liking in the docker compose. For development set them in a .env file in the root directory of the repo.
+
+```json
+"Secrets": {
+        // the public key generated on kraken pro
+        "ApiKey": "<kraken api public key>", 
+        // the private key generated on kraken pro
+        "ApiSecret": "<kraken api private key>"
+
+    }
+"MailSecrets": {
+        // the 16 char google application password whithout whitespaces
+        "GoogleAppPassword": "<google app password 16 chars (without whitespace)>",
+        // email adress of the sending google account
+        "SenderEmail": "<sender mail>@gmail.com", 
+        // your email adress where you want to receive the mail
+        "ReceiverEmail": "<receiver email>"
+    }
+```
+
 ```bash
 OrderOptions__Type=Limit # Limit or Market supported
 OrderOptions__Fee=0.4   # in percent
@@ -120,13 +138,6 @@ WaitOptions__MaxWaitTime=01:00:00 # max wait time between check intervals
 CultureOptions__CultureString=de-CH # your culture code. Use it for the region where you live. -> is used to determine holidays for calculating the next top up
 CultureOptions__CountyCode=CH-ZH # same as above but for the county look up on date.nager.at
 CultureOptions__Fiat=CHF # your currency for logging and potential other features
-
-Secrets__ApiKey=<your api public key> # the public key generated on kraken pro
-Secrets__ApiSecret=<your api private key> # the private key generated on kraken pro
-
-MailSecrets__SenderEmail=<EmailAdress> # email adress of the sending google account
-MailSecrets__GoogleAppPassword=<16charPassword> # the 16 char google application password whithout whitespaces
-MailSecrets__ReceiverEmail=<EmailAdress> #your email adress 
 
 MailOptions__HourOfDay=6 # At which time you like to get the mail (24h format UTC) Default to 6 o'clok if not set
 MailOptions__CryptoPair=XBTCHF #same as in OrderOptions

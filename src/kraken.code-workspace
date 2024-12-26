@@ -14,6 +14,10 @@
 		},
 		{
 			"name": "ProjectFiles",
+			"path": "../."
+		},
+		{
+			"name": "SourceFiles",
 			"path": "."
 		}
 	],
@@ -24,6 +28,7 @@
 			"Kbot.Common": true,
 			"Tests": true,
 			"Kbot.MailService": true,
+			"src": true,
 			"**/.git": true,
 			"**/.svn": true,
 			"**/.hg": true,

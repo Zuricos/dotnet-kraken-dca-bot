@@ -1,8 +1,7 @@
 services:
   dca-service:
-    build:
-      context: .
-      dockerfile: Kbot.DcaService/Dockerfile
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service:1.0.0
+    container_name: dca-service
     restart: unless-stopped
     secrets:
       - dca-secrets
@@ -24,9 +23,8 @@ services:
       CultureOptions__Fiat: CHF
 
   mail-service:
-    build:
-      context: .
-      dockerfile: Kbot.MailService/Dockerfile
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service:1.0.0
+    container_name: mail-service
     restart: unless-stopped
     secrets:
       - mail-secrets
@@ -37,11 +35,11 @@ services:
       MailOptions__CryptoPair: XBTCHF
       MailOptions__Crypto: BTC
       MailOptions__Fiat: CHF
-      ConnectionStrings__Kraken: "Host=postgres;Database=Kbot;Username=postgres;Password=NotYourK3yNotYourCoin$"
+      ConnectionStrings__Kraken: "Host=kraken-database;Database=Kbot;Username=postgres;Password=NotYourK3yNotYourCoin$"
 
-  postgres:
+  kraken-database:
     image: postgres:latest
-    container_name: postgres
+    container_name: kraken-database
     environment:
       POSTGRES_DB: Kbot
       POSTGRES_USER: postgres

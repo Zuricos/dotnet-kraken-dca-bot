@@ -19,7 +19,7 @@ public class MigrationService(IDbContextFactory<KrakenDbContext> dbContextFactor
             {
                 Console.WriteLine(e);
                 tries++;
-                Task.Delay(1000).Wait(cancellationToken);
+                Task.Delay(5000, cancellationToken).Wait(cancellationToken);
             }
         }
     }
