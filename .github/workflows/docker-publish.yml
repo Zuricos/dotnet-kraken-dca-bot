@@ -98,7 +98,7 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm64
           context: .
-          file: Kbot.DcaService/Dockerfile
+          file: src/Kbot.DcaService/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:latest
@@ -110,7 +110,7 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm64
           context: .
-          file: Kbot.MailService/Dockerfile
+          file: src/Kbot.MailService/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPO }}/mail-service:latest
