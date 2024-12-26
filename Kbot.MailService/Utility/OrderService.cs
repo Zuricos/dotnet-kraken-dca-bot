@@ -35,7 +35,9 @@ public class OrderService(IDbContextFactory<KrakenDbContext> dbContextFactory, K
             .Where(o => !query.BuyOrSell.HasValue || query.BuyOrSell.HasValue && o.Type == query.BuyOrSell.Value)
             .Where(o => !query.OrderType.HasValue || query.OrderType.HasValue && o.OrderType == query.OrderType.Value)
             .Where(o => !query.OrderStatus.HasValue || query.OrderStatus.HasValue && o.Status == query.OrderStatus.Value)
-            .Where(o => query.Pair == null || query.Pair != null && o.Pair == query.Pair).ToListAsync();
+            .Where(o => query.Pair == null || query.Pair != null && o.Pair == query.Pair)
+            .OrderByDescending(o => o.CloseTimeStamp)
+            .ToListAsync();
         return orders;
     }
 }
