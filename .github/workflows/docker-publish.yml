@@ -97,8 +97,8 @@ jobs:
         uses: docker/build-push-action@v6.10.0
         with:
           platforms: linux/amd64, linux/arm64
-          context: .
-          file: src/Kbot.DcaService/Dockerfile
+          context: src
+          file: Kbot.DcaService/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:latest
@@ -109,8 +109,8 @@ jobs:
         uses: docker/build-push-action@v6.10.0
         with:
           platforms: linux/amd64, linux/arm64
-          context: .
-          file: src/Kbot.MailService/Dockerfile
+          context: src
+          file: Kbot.MailService/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPO }}/mail-service:latest
