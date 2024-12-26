@@ -1,6 +1,6 @@
 services:
   dca-service:
-    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service:1.0.0
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service:1.0.1
     container_name: dca-service
     restart: unless-stopped
     secrets:
@@ -23,7 +23,7 @@ services:
       CultureOptions__Fiat: CHF
 
   mail-service:
-    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service:1.0.0
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service:1.0.1
     container_name: mail-service
     restart: unless-stopped
     secrets:

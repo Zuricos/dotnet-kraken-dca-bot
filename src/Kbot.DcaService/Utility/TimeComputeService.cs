@@ -12,6 +12,13 @@ public class TimeComputeService(
     {
         var nextTopUpTime = new DateTime(utcNow.Year, utcNow.Month, topUpDayOfMonth, 0, 0, 0);
 
+        while (nextTopUpTime.DayOfWeek == DayOfWeek.Saturday
+                || nextTopUpTime.DayOfWeek == DayOfWeek.Sunday
+                || holidayService.IsHoliday(nextTopUpTime))
+        {
+            nextTopUpTime = nextTopUpTime.AddDays(1);
+        }
+
         if (utcNow > nextTopUpTime)
         {
             if (utcNow.Month == 12)
