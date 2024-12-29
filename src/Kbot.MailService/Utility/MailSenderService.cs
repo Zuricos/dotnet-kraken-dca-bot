@@ -16,12 +16,36 @@ public class MailSenderService(
 {
     public async Task SendMailWithClosedOrdersLast24Hours()
     {
+        await orderService.FetchClosedOrdersAndSave();
         var orders = await GetClosedOrdersLast24Hours();
+
+        if (orders.Count == 0)
+        {
+            logger.LogInformation("No closed orders in the last 24 hours.");
+            var htmlNoOrds = """
+            <div style='text-align: center; font-size: 18px; margin: 20px 0;'>
+                Hi there, <br/>
+                I'd looks like the dca bot didn't bought any crypto in the last 24 hours. <br/>
+                Maybe you don't have enough funds, there is an error with the dca bot
+                or with the mail bot accessing the database or the kraken api.</div>
+
+                Please check the logs for more information.
+                And if you found an error which you can't solve with proper configuration, reach out to me via a github issue:
+                <a href='https://github.com/Zuricos/dotnet-kraken-dca-bot/issues'>
+
+                Greetings, Zuricos. Creator of the dotnet-kraken-dca-bot.
+            """;
+            await SendMail(htmlNoOrds);
+            return;
+        }
+
+        var lastAveragePrice = await GetLastAveragePrice();
         var htmlW = HtmlService.GenerateWelcome(orders, mailOptions.Value);
+        var htmlS = HtmlService.GenerateSummary(orders, lastAveragePrice, mailOptions.Value);
         var htmlT = HtmlService.GenerateTableFromOrders(orders, mailOptions.Value);
         var htmlG = HtmlService.GenerateGreetings();
 
-        var html = htmlW + htmlT + htmlG;
+        var html = htmlW + htmlS + htmlT + htmlG;
         logger.LogInformation("Sending mail with closed orders last 24 hours.");
         await SendMail(html);
     }
@@ -56,7 +80,6 @@ public class MailSenderService(
 
     private async Task<List<Order>> GetClosedOrdersLast24Hours()
     {
-        await orderService.FetchClosedOrdersAndSave();
         var orders = await orderService.QueryClosedOrdersFromDatabase(new ClosedOrderQuery
         {
             StartDate = DateTimeOffset.UtcNow.AddDays(-1),
@@ -66,5 +89,18 @@ public class MailSenderService(
             Pair = mailOptions.Value.CryptoPair
         });
         return orders;
+    }
+
+    private async Task<double> GetLastAveragePrice()
+    {
+        var orders = await orderService.QueryClosedOrdersFromDatabase(new ClosedOrderQuery
+        {
+            StartDate = DateTimeOffset.UtcNow.AddDays(-2),
+            EndDate = DateTimeOffset.UtcNow.AddDays(-1),
+            OrderStatus = OrderStatus.Closed,
+            BuyOrSell = BuyOrSell.Buy,
+            Pair = mailOptions.Value.CryptoPair
+        });
+        return orders.Sum(o => o.Cost) / orders.Sum(o => o.Volume);
     }
 }

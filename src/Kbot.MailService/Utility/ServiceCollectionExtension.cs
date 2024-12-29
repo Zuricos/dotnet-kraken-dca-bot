@@ -29,7 +29,7 @@ public static class ServiceCollectionExtension
 
         services.AddHostedService<OptionsCheckerService<Secrets>>();
         services.AddHostedService<OptionsCheckerService<MailSecrets>>();
-        services.AddHostedService<Worker>();
+        services.AddHostedService<DailyReporter>();
         return services;
     }
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace Kbot.MailService;
 
-public class Worker(ILogger<Worker> logger, MailSenderService mailSender, IOptions<MailOptions> mailOptions) : BackgroundService
+public class DailyReporter(ILogger<DailyReporter> logger, MailSenderService mailSender, IOptions<MailOptions> mailOptions) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

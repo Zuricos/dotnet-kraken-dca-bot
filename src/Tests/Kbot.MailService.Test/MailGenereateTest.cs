@@ -36,7 +36,7 @@ public class MailGenerateTest
             .Configure<Secrets>(builder.Configuration.GetSection(nameof(Secrets)))
             .Configure<MailSecrets>(builder.Configuration.GetSection(nameof(MailSecrets)))
             .Configure<MailOptions>(builder.Configuration.GetSection(nameof(MailOptions)))
-            .AddDbContextFactory<KrakenDbContext>(c => c.UseSqlite("Data Source=Test.db"))
+            .AddDbContextFactory<KrakenDbContext>(c => c.UseInMemoryDatabase("KrakenDb"))
             .AddTransient<KrakenApi>()
             .AddTransient<KrakenClient>()
             .AddTransient<OrderService>()
