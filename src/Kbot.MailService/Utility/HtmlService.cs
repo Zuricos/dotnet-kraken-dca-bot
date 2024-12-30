@@ -26,9 +26,9 @@ public class HtmlService
         var totalCosts = orders.Sum(o => o.Cost);
         var totalFees = orders.Sum(o => o.Fee);
         var averagePrice = totalCosts / investments;
-        var priceIncrease = lastAveragePrice / averagePrice * 100 - 100;
+        var priceIncrease = averagePrice / lastAveragePrice * 100 - 100;
 
-        return $"<div style='text-align: center; font-size: 16px; margin-top: 30px;'>Summary:<br>Investments: {investments} {mailOptions.Crypto}<br>Total Costs: {totalCosts:F2} {mailOptions.Fiat}<br>Total Fees: {totalFees:F2} {mailOptions.Fiat}<br>Average Price: {averagePrice:F2} {mailOptions.Fiat}<br>Price Increase: {priceIncrease:F2}%</div>";
+        return $"<div style='text-align: center; font-size: 16px; margin-top: 30px;'>Summary:<br>Investments: {investments:F8} {mailOptions.Crypto}<br>Total Costs: {totalCosts:F2} {mailOptions.Fiat}<br>Total Fees: {totalFees:F2} {mailOptions.Fiat}<br>Average Price: {averagePrice:F2} {mailOptions.Fiat}<br>Price Increase: {priceIncrease:F2}%</div>";
     }
 
     public static string GenerateGreetings()
