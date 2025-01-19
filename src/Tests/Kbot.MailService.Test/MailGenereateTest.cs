@@ -56,7 +56,7 @@ public class MailGenerateTest
             This is a Mail from my MailService.Test.
         """;
 
-        await mailservice.SendMail(testString);
+        await mailservice.SendMail(testString, "TEST");
     }
 
     [TestMethod]
@@ -66,5 +66,18 @@ public class MailGenerateTest
         await migrationService.StartAsync(CancellationToken.None);
         var mailservice = _serviceProvider.GetRequiredService<MailSenderService>();
         await mailservice.SendMailWithClosedOrdersLast24Hours();
+    }
+
+    [TestMethod]
+    public async Task SendReportMail()
+    {
+        var migrationService = _serviceProvider.GetRequiredService<MigrationService>();
+        await migrationService.StartAsync(CancellationToken.None);
+
+        var orderService = _serviceProvider.GetRequiredService<OrderService>();
+        await orderService.FetchClosedOrdersAndSave(DateTimeOffset.UtcNow.AddDays(-2));
+    
+        var mailservice = _serviceProvider.GetRequiredService<MailSenderService>();
+        await mailservice.SendReportMail(DateTimeOffset.UtcNow.AddDays(-2));
     }
 }

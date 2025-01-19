@@ -1,6 +1,6 @@
 services:
   dca-service:
-    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service:1.0.1
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service:1.2.1
     container_name: dca-service
     restart: unless-stopped
     secrets:
@@ -8,42 +8,26 @@ services:
     volumes:
       - state:/app/state:rw
       - logs:/app/logs:rw
-    environment:
-      OrderOptions__Type: Limit
-      OrderOptions__Fee: 0.4
-      OrderOptions__MinOrderVolume: 0.00005
-      OrderOptions__AskMultiplier: 1.00001
-      OrderOptions__CryptoPair: XBTCHF
-      BalanceOptions__DefaultTopupDayOfMonth: 26
-      BalanceOptions__ReserveFiat: 0
-      WaitOptions__MinWaitTime: 00:00:10
-      WaitOptions__MaxWaitTime: 01:00:00
-      CultureOptions__CultureString: "de-CH"
-      CultureOptions__CountyCode: "CH-ZH"
-      CultureOptions__Fiat: CHF
+    env_file:
+      - stack.env
 
   mail-service:
-    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service:1.0.1
+    image: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service:1.2.1
     container_name: mail-service
     restart: unless-stopped
     secrets:
       - mail-secrets
     volumes:
+      - state:/app/state:rw
       - logs:/app/logs:rw
-    environment:
-      MailOptions__HourOfDay: 6
-      MailOptions__CryptoPair: XBTCHF
-      MailOptions__Crypto: BTC
-      MailOptions__Fiat: CHF
-      ConnectionStrings__Kraken: "Host=kraken-database;Database=Kbot;Username=postgres;Password=NotYourK3yNotYourCoin$"
+    env_file:
+      - stack.env
 
   kraken-database:
     image: postgres:latest
     container_name: kraken-database
-    environment:
-      POSTGRES_DB: Kbot
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: NotYourK3yNotYourCoin$
+    env_file:
+      - stack.env
     ports:
       - "5432:5432"
     volumes:
@@ -52,9 +36,9 @@ services:
 
 secrets:
   dca-secrets:
-    file: ./docker.dca.secrets.json
+    file: /home/{user}/{dir}/docker.dca.secrets.json
   mail-secrets:
-    file: ./docker.mail.secrets.json
+    file: /home/{user}/{dir}/docker.mail.secrets.json
 
 volumes:
   pg_data:

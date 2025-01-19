@@ -22,6 +22,8 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 USER root
 RUN mkdir /app/logs
+RUN mkdir /app/state
 RUN chown -R app:app /app/logs
+RUN chown -R app:app /app/state
 USER app
 ENTRYPOINT ["dotnet", "Kbot.MailService.dll"]

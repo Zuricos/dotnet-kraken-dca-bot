@@ -9,7 +9,7 @@ public class DailyReporter(ILogger<DailyReporter> logger, MailSenderService mail
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
-        await SendDailyMail();
+        await mailSender.WelcomeOrRestartMessage();
         logger.LogInformation("Send Mail as startup to verify the service is running and works.");
         while (!stoppingToken.IsCancellationRequested)
         {

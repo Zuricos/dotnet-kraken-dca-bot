@@ -9,7 +9,7 @@ public class HtmlService
 {
     private const long SATS = 100_000_000;
 
-    public static string GenerateWelcome(List<Order> orders, MailOptions mailOptions)
+    public static string GenerateDailyWelcome(List<Order> orders, MailOptions mailOptions)
     {
         var investments = orders.Sum(o => o.Volume);
         var totalCosts = orders.Sum(o => o.Cost);
@@ -20,7 +20,7 @@ public class HtmlService
             return $"<div style='text-align: center; font-size: 18px; margin: 20px 0;'>Hi,<br>I've bought in the last 24 hours for you: {investments:N0} {mailOptions.Crypto} for {totalCosts:F2} {mailOptions.Fiat}.</div>";
     }
 
-    public static string GenerateSummary(List<Order> orders, double lastAveragePrice, MailOptions mailOptions)
+    public static string GenerateDailySummary(List<Order> orders, double lastAveragePrice, MailOptions mailOptions)
     {
         var investments = orders.Sum(o => o.Volume);
         var totalCosts = orders.Sum(o => o.Cost);
@@ -36,7 +36,7 @@ public class HtmlService
         return "<div style='text-align: center; font-size: 16px; margin-top: 30px;'>Greetings, your DCA - BOT</div>";
     }
 
-    public static string GenerateTableFromOrders(List<Order> orders, MailOptions mailOptions)
+    public static string GenerateDailyTableFromOrders(List<Order> orders, MailOptions mailOptions)
     {
         var sb = new StringBuilder();
         sb.Append("<table style='width: 100%; margin: 20px 0; border-collapse: collapse;' class='table table-striped table-bordered'>");
@@ -71,5 +71,17 @@ public class HtmlService
 
         sb.Append("</tbody></table>");
         return sb.ToString();
+    }
+
+    public static string GenerateReportWelcome(DateTimeOffset start, DateTimeOffset end)
+    {
+        return $"""
+            <div style='text-align: center; font-size: 16px; margin-top: 30px;'>
+                Hi there, <br/><br/>
+
+                In the attachments you will find the report of your DCA bot. <br/>
+                The report contains all closed orders from {start.ToString("u", CultureInfo.InvariantCulture)} to {end.ToString("u", CultureInfo.InvariantCulture)}. <br/><br/>
+            </div>";
+        """;
     }
 }

@@ -115,11 +115,11 @@ public sealed class KrakenClient(ILogger<KrakenClient> logger, KrakenApi api) : 
         };
         if (start != default)
         {
-            orderData.Add("starttm", start.ToUnixTimeSeconds());
+            orderData.Add("start", start.ToUnixTimeSeconds());
         }
         if (end != default)
         {
-            orderData.Add("endtm", end.ToUnixTimeSeconds());
+            orderData.Add("end", end.ToUnixTimeSeconds());
         }
 
         ApiResponse<ClosedOrderUnparsed>? response;

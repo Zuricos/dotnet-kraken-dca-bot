@@ -5,6 +5,7 @@ using Kbot.Common.Options;
 using Kbot.MailService.Database;
 using Kbot.MailService.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Kbot.MailService.Utility;
 
@@ -12,9 +13,7 @@ public static class ServiceCollectionExtension
 {
     public static IServiceCollection Setup(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<Secrets>(configuration.GetSection(nameof(Secrets)));
-        services.Configure<MailSecrets>(configuration.GetSection(nameof(MailSecrets)));
-        services.Configure<MailOptions>(configuration.GetSection(nameof(MailOptions)));
+        services.SetupOptions(configuration);
 
         services.AddDbContextFactory<KrakenDbContext>(options =>
         {
@@ -27,9 +26,8 @@ public static class ServiceCollectionExtension
         services.AddSingleton<MailSenderService>();
         services.AddSingleton<MigrationService>();
 
-        services.AddHostedService<OptionsCheckerService<Secrets>>();
-        services.AddHostedService<OptionsCheckerService<MailSecrets>>();
         services.AddHostedService<DailyReporter>();
+        services.AddHostedService<MonthlyReporter>();
         return services;
     }
 
@@ -47,5 +45,26 @@ public static class ServiceCollectionExtension
             .Build();
 
         return configManager;
+    }
+
+    public static IServiceCollection SetupOptions (this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<Secrets>()
+            .Bind(configuration.GetSection(nameof(Secrets)))
+            .ValidateOnStart();
+        
+        services.AddOptions<MailSecrets>()
+            .Bind(configuration.GetSection(nameof(MailSecrets)))
+            .ValidateOnStart();
+
+        services.AddOptions<MailOptions>()
+            .Bind(configuration.GetSection(nameof(MailOptions)))
+            .ValidateOnStart();
+        
+        services.AddSingleton<IValidateOptions<Secrets>, SecretsValidator>();
+        services.AddSingleton<IValidateOptions<MailSecrets>, MailSecretsValidator>();
+        services.AddSingleton<IValidateOptions<MailOptions>, MailOptionsValidator>();
+
+        return services;
     }
 }
