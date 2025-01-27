@@ -78,7 +78,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:${{ env.NEW_VERSION }}
 
       - name: Generate artifact attestation DCA
-        if: env.PRIVATE_REPO != 'true'
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.REPO}}/dca-service
@@ -86,25 +85,14 @@ jobs:
           push-to-registry: true
 
       - name: Generate artifact attestation Mail
-        if: env.PRIVATE_REPO != 'true'
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.REPO}}/mail-service
           subject-digest: ${{ steps.push_mail.outputs.digest }}
           push-to-registry: true   
       
-      - name: Commit new Version
-        if: env.PRIVATE_REPO == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add VERSION
-          git commit -m "Bump version to ${{ env.NEW_VERSION }}"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
       - name: Tag changes
+        if: github.ref == 'refs/heads/prod'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
