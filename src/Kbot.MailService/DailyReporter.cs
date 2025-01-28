@@ -4,16 +4,17 @@ using Microsoft.Extensions.Options;
 
 namespace Kbot.MailService;
 
-public class DailyReporter(ILogger<DailyReporter> logger, MailSenderService mailSender, IOptions<MailOptions> mailOptions) : BackgroundService
+public class DailyReporter(ILogger<DailyReporter> logger, MonthlyReporter monthlyReporter, MailSenderService mailSender, IOptions<MailOptions> mailOptions) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
         await mailSender.WelcomeOrRestartMessage();
         logger.LogInformation("Send Mail as startup to verify the service is running and works.");
+        await monthlyReporter.SendReportOnStartup();
         while (!stoppingToken.IsCancellationRequested)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var nextRunTime = new DateTime(now.Year, now.Month, now.Day, mailOptions.Value.HourOfDay, 0, 0); // 6 AM today
             if (now >= nextRunTime) nextRunTime = nextRunTime.AddDays(1);
 
@@ -22,6 +23,7 @@ public class DailyReporter(ILogger<DailyReporter> logger, MailSenderService mail
             await Task.Delay(delay, stoppingToken);
 
             await SendDailyMail();
+            await monthlyReporter.SendReportAsync();
         }
     }
 

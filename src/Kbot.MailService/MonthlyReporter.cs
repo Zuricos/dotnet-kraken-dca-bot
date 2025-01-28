@@ -5,16 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace Kbot.MailService;
 
-public class MonthlyReporter(ILogger<MonthlyReporter> logger, MailSenderService mailSender, IOptions<MailOptions> mailOptions) : BackgroundService
+public class MonthlyReporter(ILogger<MonthlyReporter> logger, MailSenderService mailSender, IOptions<MailOptions> mailOptions)
 {
     private HistoryState _state = null!;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task SendReportOnStartup()
     {
-        logger.LogInformation("Worker running at: {time}", DateTimeOffset.UtcNow);
         _state = HistoryState.Load();
-
-
         if (_state.LastReportedOrderTimeStamp == DateTimeOffset.MinValue)
         {
             _state = _state with { LastReportedOrderTimeStamp = mailOptions.Value.HistoryStartDateDto };
@@ -29,18 +26,18 @@ public class MonthlyReporter(ILogger<MonthlyReporter> logger, MailSenderService 
                 await SendReport();
             }
         }
+    }
 
-        while (!stoppingToken.IsCancellationRequested)
+    public Task SendReportAsync()
+    {
+        var utcNow = DateTimeOffset.UtcNow;
+        if (utcNow.Day == mailOptions.Value.DayOfMonth)
         {
-            var now = DateTime.Now;
-            var nextRunTime = new DateTime(now.Year, now.Month, mailOptions.Value.DayOfMonth, mailOptions.Value.HourOfDay, 0, 0);
-            if (now >= nextRunTime) nextRunTime = nextRunTime.AddMonths(1);
-
-            var delay = nextRunTime - now;
-            logger.LogInformation("Next run time: {time}", nextRunTime);
-            await Task.Delay(delay, stoppingToken);
-
-            await SendReport();
+            return SendReport();
+        }
+        else
+        {
+            return Task.CompletedTask;
         }
     }
 

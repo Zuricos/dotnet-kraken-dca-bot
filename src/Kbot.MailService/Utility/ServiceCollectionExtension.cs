@@ -25,9 +25,9 @@ public static class ServiceCollectionExtension
         services.AddTransient<KrakenClient>();
         services.AddSingleton<MailSenderService>();
         services.AddSingleton<MigrationService>();
+        services.AddSingleton<MonthlyReporter>();
 
         services.AddHostedService<DailyReporter>();
-        services.AddHostedService<MonthlyReporter>();
         return services;
     }
 

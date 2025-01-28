@@ -2,9 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "prod" ]
-  pull_request:
-    types: [opened, synchronize]
+    branches: [ "prod", "dev" ]
   workflow_dispatch:
 env:
   REGISTRY: ghcr.io
@@ -17,6 +15,12 @@ permissions:
 
 jobs:
   build-and-push:
+    if: | 
+      !startsWith(github.event.head_commit.message, 'chore') && 
+      (startsWith(github.event.head_commit.message, 'major') || 
+      startsWith(github.event.head_commit.message, 'feat') || 
+      startsWith(github.event.head_commit.message, 'fix'))  || 
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -35,13 +39,48 @@ jobs:
           VER=$(cat VERSION)
           echo "VERSION=$VER" >> $GITHUB_ENV
           echo "NEW_VERSION=$VER" >> $GITHUB_ENV
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            BUILD_NUMBER=$(echo "${{ github.run_id }}" | tr -d '[:space:]')  # Use run_id as build number
-            echo "NEW_VERSION=${VER}-prev-${BUILD_NUMBER}" >> $GITHUB_ENV
+          if [[ "${{ env.REPO }}" == *"private"* ]]; then
+            echo "PRIVATE_REPO=true" >> $GITHUB_ENV
           else
-            echo "NEW_VERSION=$VER" >> $GITHUB_ENV
+            echo "PRIVATE_REPO=false" >> $GITHUB_ENV
           fi
+
+      - name: Update major version
+        if: |
+          startsWith(github.event.head_commit.message, 'major') &&
+          github.event_name != 'workflow_dispatch' &&
+          env.PRIVATE_REPO == 'true'
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
+          new_major=$((major + 1))
+          new_version="${new_major}.0.0"
+          echo "NEW_VERSION=${new_version}" >> $GITHUB_ENV
+          echo "${new_version}" > VERSION
+
+      - name: Update minor version
+        if: |
+          startsWith(github.event.head_commit.message, 'feat') &&
+          github.event_name != 'workflow_dispatch' &&
+          env.PRIVATE_REPO == 'true'
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
+          new_minor=$((minor + 1))
+          new_version="${major}.${new_minor}.0"
+          echo "NEW_VERSION=${new_version}" >> $GITHUB_ENV
+          echo "${new_version}" > VERSION
+        
+      - name: Update patch version
+        if: |
+          ((!startsWith(github.event.head_commit.message, 'feat') &&
+          !startsWith(github.event.head_commit.message, 'major')) ||
+          github.event_name == 'workflow_dispatch') &&
+          env.PRIVATE_REPO == 'true'
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ env.VERSION }}"
+          new_patch=$((patch + 1))
+          new_version="${major}.${minor}.${new_patch}"
+          echo "NEW_VERSION=${new_version}" >> $GITHUB_ENV
+          echo "${new_version}" > VERSION
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.8.0
@@ -62,7 +101,7 @@ jobs:
           file: Kbot.DcaService/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:${{ github.ref == 'refs/heads/prod' && 'latest' || 'latest-dev' }}
+            ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:latest
             ${{ env.REGISTRY }}/${{ env.REPO }}/dca-service:${{ env.NEW_VERSION }}
 
       - name: Build and push Mail Service image
@@ -74,10 +113,11 @@ jobs:
           file: Kbot.MailService/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPO }}/mail-service:${{ github.ref == 'refs/heads/prod' && 'latest' || 'latest-dev' }}
+            ${{ env.REGISTRY }}/${{ env.REPO }}/mail-service:latest
             ${{ env.REGISTRY }}/${{ env.REPO }}/mail-service:${{ env.NEW_VERSION }}
 
       - name: Generate artifact attestation DCA
+        if: env.PRIVATE_REPO != 'true'
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.REPO}}/dca-service
@@ -85,14 +125,25 @@ jobs:
           push-to-registry: true
 
       - name: Generate artifact attestation Mail
+        if: env.PRIVATE_REPO != 'true'
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.REPO}}/mail-service
           subject-digest: ${{ steps.push_mail.outputs.digest }}
           push-to-registry: true   
       
+      - name: Commit new Version
+        if: env.PRIVATE_REPO == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add VERSION
+          git commit -m "Bump version to ${{ env.NEW_VERSION }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Tag changes
-        if: github.ref == 'refs/heads/prod'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
