@@ -1,0 +1,59 @@
+name: Publish - DCA Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/Kbot.Commmon/**
+      - src/Kbot.DcaService/**
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - src/Kbot.Commmon/**
+      - src/Kbot.DcaService/**
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute Version
+        id: compute-version
+        uses: Zurios/gh-actions/compute-version@main
+        with:
+          prefix: dca-
+          paths: "src/Kbot.Commmon src/Kbot.DcaService"
+
+  build-and-publish:
+    needs: compute-version
+    if: ${{ needs.compute-version.outputs.hasNextVersion }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Publish Docker Image
+        id: build_and_publish
+        uses: Zuricos/gh-actionsbuild-and-publish-docker@main
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          context:  src
+          dockerfile: src/Kbot.DcaService/Dockerfile
+          image-name: dca-service
+          version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push Tag
+        uses: Zuricos/gh-actionspush-tag@main
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          tag: ${{ needs.compute-version.outputs.version_tag }}${{ needs.compute-version.outputs.suffix }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/zuricos/dca-service
+          subject-digest: ${{ steps.build_and_publish.outputs.digest }}
+          push-to-registry: true 
