@@ -17,19 +17,10 @@ on:
 
 jobs:
   compute-version:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Compute Version
-        id: compute-version
-        uses: Zuricos/Actions/compute-version@main
-        with:
-          prefix: mail-
-          paths: "src/Kbot.Commmon src/Kbot.MailService"
-    outputs:
-      version: ${{ steps.compute-version.outputs.version }}
-      suffix: ${{ steps.compute-version.outputs.suffix }}
-      hasNextVersion: ${{ steps.compute-version.outputs.hasNextVersion }}
-      version_tag: ${{ steps.compute-version.outputs.version_tag }}
+    uses: Zuricos/Actions/.github/workflows/compute-version.yml@main
+    with:
+      prefix: mail-
+      paths: "src/Kbot.MailService src/Kbot.Commmon"
 
   build-and-publish:
     needs: compute-version
