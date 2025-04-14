@@ -52,7 +52,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           context:  src
           dockerfile: src/Kbot.DcaService/Dockerfile
-          image-name: dca-service
+          image-name: dotnet-kraken-dca-bot/dca-service
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Tag
