@@ -62,5 +62,5 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ghcr.io/zuricos/dotnet-kraken-dca-bot/mail-service
-          subject-digest: ${{ steps.build_and_publish.outputs.digest }}
+          subject-digest: ${{ steps.build_and_publish.outputs.image-digest }}
           push-to-registry: true 
