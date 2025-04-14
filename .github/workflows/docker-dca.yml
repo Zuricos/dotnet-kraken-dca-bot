@@ -17,10 +17,11 @@ on:
 
 jobs:
   compute-version:
+    runs-on: ubuntu-latest
     steps:
       - name: Compute Version
         id: compute-version
-        uses: Zurios/Actions/compute-version@main
+        uses: Zuricos/Actions/compute-version@main
         with:
           prefix: dca-
           paths: "src/Kbot.Commmon src/Kbot.DcaService"
