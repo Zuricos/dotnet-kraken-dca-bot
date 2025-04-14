@@ -14,11 +14,6 @@ on:
     paths:
       - src/Kbot.Common/**
       - src/Kbot.DcaService/**
-permissions:
-  contents: write
-  id-token: write
-  packages: write
-  attestations: write
 
 jobs:
   compute-version:
@@ -43,6 +38,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
       - name: Build and Publish Docker Image
