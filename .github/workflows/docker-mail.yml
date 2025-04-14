@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - src/Kbot.Commmon/**
+      - src/Kbot.Common/**
       - src/Kbot.MailService/**
   workflow_dispatch:
   pull_request:
     branches:
       - main
     paths:
-      - src/Kbot.Commmon/**
+      - src/Kbot.Common/**
       - src/Kbot.MailService/**
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: mail-
-          paths: "src/Kbot.Commmon src/Kbot.MailService"
+          paths: "src/Kbot.Common src/Kbot.MailService"
 
   build-and-publish:
     needs: compute-version

@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - src/Kbot.Commmon/**
+      - src/Kbot.Common/**
       - src/Kbot.DcaService/**
   workflow_dispatch:
   pull_request:
     branches:
       - main
     paths:
-      - src/Kbot.Commmon/**
+      - src/Kbot.Common/**
       - src/Kbot.DcaService/**
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: dca-
-          paths: "src/Kbot.Commmon src/Kbot.DcaService"
+          paths: "src/Kbot.Common src/Kbot.DcaService"
 
   build-and-publish:
     needs: compute-version
