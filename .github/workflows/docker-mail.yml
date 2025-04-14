@@ -25,6 +25,11 @@ jobs:
         with:
           prefix: mail-
           paths: "src/Kbot.Common src/Kbot.MailService"
+    outputs:
+      version: ${{ steps.compute-version.outputs.version }}
+      suffix: ${{ steps.compute-version.outputs.suffix }}
+      hasNextVersion: ${{ steps.compute-version.outputs.hasNextVersion }}
+      version_tag: ${{ steps.compute-version.outputs.version_tag }}
 
   build-and-publish:
     needs: compute-version
