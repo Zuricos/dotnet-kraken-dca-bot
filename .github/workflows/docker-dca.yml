@@ -51,7 +51,7 @@ jobs:
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Tag
-        uses: Zuricos/gh-action/spush-tag@main
+        uses: Zuricos/gh-actions/push-tag@main
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           tag: ${{ needs.compute-version.outputs.version_tag }}${{ needs.compute-version.outputs.suffix }}
