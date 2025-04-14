@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Compute Version
         id: compute-version
-        uses: Zurios/gh-actions/compute-version@main
+        uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: dca-
           paths: "src/Kbot.Commmon src/Kbot.DcaService"
