@@ -64,6 +64,6 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ghcr.io/zuricos/dca-service
+          subject-name: ghcr.io/zuricos/dotnet-kraken-dca-bot/dca-service
           subject-digest: ${{ steps.build_and_publish.outputs.digest }}
           push-to-registry: true 
