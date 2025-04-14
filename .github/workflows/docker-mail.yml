@@ -42,11 +42,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and Publish Docker Image
         id: build_and_publish
-        uses: Zuricos/gh-actions/build-and-publish-docker@main
+        uses: Zuricos/gh-actions/docker-build-and-publish@main
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           context:  src
-          dockerfile: Kbot.MailService/Dockerfile
+          dockerfile: src/Kbot.MailService/Dockerfile
           image-name: mail-service
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
