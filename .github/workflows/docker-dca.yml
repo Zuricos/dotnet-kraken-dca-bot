@@ -25,6 +25,11 @@ jobs:
         with:
           prefix: dca-
           paths: "src/Kbot.Commmon src/Kbot.DcaService"
+    outputs:
+      version: ${{ steps.compute-version.outputs.version }}
+      suffix: ${{ steps.compute-version.outputs.suffix }}
+      hasNextVersion: ${{ steps.compute-version.outputs.hasNextVersion }}
+      version_tag: ${{ steps.compute-version.outputs.version_tag }}
 
   build-and-publish:
     needs: compute-version
@@ -40,8 +45,8 @@ jobs:
         uses: Zuricos/Actions/build-and-publish-docker@main
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          context:  "{{defaultContext}}:src"
-          dockerfile: Kbot.DcaService/Dockerfile
+          context:  src
+          dockerfile: src/Kbot.DcaService/Dockerfile
           image-name: dca-service
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
