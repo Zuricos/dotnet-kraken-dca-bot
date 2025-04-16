@@ -28,12 +28,12 @@ jobs:
     outputs:
       version: ${{ steps.compute-version.outputs.version }}
       suffix: ${{ steps.compute-version.outputs.suffix }}
-      hasNextVersion: ${{ steps.compute-version.outputs.hasNextVersion }}
+      needsBump: ${{ steps.compute-version.outputs.needs_bump }}
       version_tag: ${{ steps.compute-version.outputs.version_tag }}
 
   build-and-publish:
     needs: compute-version
-    if: ${{ needs.compute-version.outputs.hasNextVersion }}
+    if: ${{ needs.compute-version.outputs.needsBump }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
