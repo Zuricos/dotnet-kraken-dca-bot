@@ -17,7 +17,7 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: "nuget"
+      prefix: "fix:"
       include: "scope"
     ignore:
       - dependency-name: "*"
