@@ -63,6 +63,11 @@ public sealed class KrakenApi(ILogger<KrakenApi> logger, IOptions<Secrets> secre
                 { "API-Key", secrets.Value.ApiKey },
                 { "API-Sign", signature }
             }, jsonBody);
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                logger.LogWarning("Rate limit exceeded. Please try again later.");
+                return null;
+            }
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
