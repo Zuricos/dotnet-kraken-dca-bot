@@ -141,6 +141,7 @@ public sealed class KrakenClient(ILogger<KrakenClient> logger, KrakenApi api) : 
             offset += 50;
             if (fetchAll && closedOrders.Count >= 50 && offset < closedOrders.Count)
             {
+                Task.Delay(2000).Wait(); // Kraken API History limit is 1 request per 2 seconds
                 var next = await GetClosedOrders(fetchAll: true, offset: offset, start: start, end: end);
                 if (next != null)
                 {
