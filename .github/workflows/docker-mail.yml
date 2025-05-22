@@ -49,7 +49,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           context:  src
           dockerfile: src/Kbot.MailService/Dockerfile
-          image-name: dotnet-kraken-dca-bot/mail-service
+          image-name: kraken-mail-service
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Tag
