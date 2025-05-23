@@ -1,6 +1,6 @@
 services:
   dca-service:
-    image: ghcr.io/zuricos/kraken-dca-service:2.0.0
+    image: ghcr.io/zuricos/kraken-dca-service:2.0.1
     container_name: dca-service
     restart: unless-stopped
     secrets:
@@ -12,7 +12,7 @@ services:
       - stack.env
 
   mail-service:
-    image: ghcr.io/zuricos/kraken-mail-service:2.0.0
+    image: ghcr.io/zuricos/kraken-mail-service:2.0.1
     container_name: mail-service
     restart: unless-stopped
     secrets:
