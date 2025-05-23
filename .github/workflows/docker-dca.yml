@@ -23,7 +23,7 @@ jobs:
         id: compute-version
         uses: Zuricos/gh-actions/compute-version@main
         with:
-          prefix: dca-
+          prefix: dca
           paths: "src/Kbot.Common src/Kbot.DcaService"
     outputs:
       version: ${{ steps.compute-version.outputs.version }}

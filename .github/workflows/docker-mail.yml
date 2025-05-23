@@ -23,7 +23,7 @@ jobs:
         id: compute-version
         uses: Zuricos/gh-actions/compute-version@main
         with:
-          prefix: mail-
+          prefix: mail
           paths: "src/Kbot.Common src/Kbot.MailService"
     outputs:
       version: ${{ steps.compute-version.outputs.version }}
