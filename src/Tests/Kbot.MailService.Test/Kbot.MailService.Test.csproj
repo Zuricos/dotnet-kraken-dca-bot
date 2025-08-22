@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <UserSecretsId>1074b806-dcb0-4f5d-b9b3-01575a45725f</UserSecretsId>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Kbot.Common\Kbot.Common.csproj" />
     <ProjectReference Include="..\..\Kbot.MailService\Kbot.MailService.csproj" />
   </ItemGroup>
@@ -25,7 +23,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.7" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

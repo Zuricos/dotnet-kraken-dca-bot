@@ -2,9 +2,9 @@ namespace Kbot.Common.Enums;
 
 public enum OrderStatus
 {
-    Pending,
-    Open,
-    Closed,
-    Canceled,
-    Expired
+  Pending,
+  Open,
+  Closed,
+  Canceled,
+  Expired,
 }

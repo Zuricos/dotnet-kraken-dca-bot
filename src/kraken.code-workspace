@@ -1,40 +1,62 @@
 {
-	"folders": [
-		{
-			"path": "Kbot.DcaService"
-		},
-		{
-			"path": "Kbot.Common"
-		},
-		{
-			"path": "Tests"
-		},
-		{
-			"path": "Kbot.MailService"
-		},
-		{
-			"name": "ProjectFiles",
-			"path": "../."
-		},
-		{
-			"name": "SourceFiles",
-			"path": "."
-		}
-	],
-	"settings": {
-		"dotnet.defaultSolution": "Kbot.sln",
-		"files.exclude": {
-			"Kbot.DcaService": true,
-			"Kbot.Common": true,
-			"Tests": true,
-			"Kbot.MailService": true,
-			"src": true,
-			"**/.git": true,
-			"**/.svn": true,
-			"**/.hg": true,
-			"**/CVS": true,
-			"**/.DS_Store": true,
-			"**/Thumbs.db": true
-		}
-	}
+  "folders": [
+    {
+      "path": "Kbot.Common",
+      "name": "Common"
+    },
+    {
+      "path": "Kbot.DcaService",
+      "name": "DCA Service"
+    },
+    {
+      "path": "Kbot.MailService",
+      "name": "Mail Service"
+    },
+    {
+      "path": "Tests",
+      "name": "Tests"
+    },
+    {
+      "path": "../.",
+      "name": "ProjectFiles"
+    },
+    {
+      "path": ".",
+      "name": "SourceFiles"
+    }
+  ],
+  "settings": {
+    "dotnet.defaultSolution": "Kbot.sln",
+    "files.exclude": {
+      "Kbot.DcaService": true,
+      "Kbot.Common": true,
+      "Tests": true,
+      "Kbot.MailService": true,
+      "src": true,
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/CVS": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true
+    },
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true,
+    "[csharp]": {
+      "editor.defaultFormatter": "csharpier.csharpier-vscode",
+      "editor.codeActionsOnSave": ["source.organizeImports", "source.fixAll"]
+    },
+    "[xml]": {
+      "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    },
+    "terminal.integrated.gpuAcceleration": "off"
+  },
+  "extensions": {
+    "recommendations": [
+      "csharpier.csharpier-vscode",
+      "esbenp.prettier-vscode",
+      "ms-dotnettools.csharp",
+      "ms-dotnettools.csdevkit"
+    ]
+  }
 }
