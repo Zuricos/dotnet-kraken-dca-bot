@@ -5,5 +5,5 @@
 /// </summary>
 public enum PublicMethod
 {
-    Ticker
+  Ticker,
 }
