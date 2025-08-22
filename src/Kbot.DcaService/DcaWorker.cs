@@ -1,7 +1,6 @@
 using Kbot.Common.Api;
 using Kbot.Common.Dtos;
 using Kbot.Common.Enums;
-using Kbot.Common.Helpers;
 using Kbot.Common.Options;
 using Kbot.DcaService.Models;
 using Kbot.DcaService.Options;
@@ -36,7 +35,7 @@ public class DcaWorker(
   {
     logger.LogInformation("DCA Worker running at: {time}", DateTime.UtcNow);
 
-    State = DcaState.Load();
+    State = DcaStateHandler.Load();
     var nextTopUpTime = computeService.ComputeNextTopUpTime(
       DateTime.UtcNow,
       balanceOptions.Value.DefaultTopupDayOfMonth
