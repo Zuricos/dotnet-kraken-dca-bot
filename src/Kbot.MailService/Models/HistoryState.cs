@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Kbot.DcaService.Models;
+namespace Kbot.MailService.Models;
 
 public record HistoryState
 {
