@@ -1,14 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <UserSecretsId>d594c211-a4c1-4879-b271-d5f623bc8b71</UserSecretsId>
+    <UserSecretsId>a7645d83-62b8-4ffa-9a7f-d10630270e86</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Kbot.Common\Kbot.Common.csproj" />
+    <ProjectReference Include="..\..\src\Kbot.Common\Kbot.Common.csproj" />
+    <ProjectReference Include="..\..\src\Kbot.DcaService\Kbot.DcaService.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />

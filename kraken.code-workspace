@@ -1,38 +1,33 @@
 {
   "folders": [
     {
-      "path": "Kbot.Common",
-      "name": "Common"
+      "path": ".github",
+      "name": "github"
     },
     {
-      "path": "Kbot.DcaService",
-      "name": "DCA Service"
+      "path": "src",
+      "name": "source"
     },
     {
-      "path": "Kbot.MailService",
-      "name": "Mail Service"
+      "path": "test",
+      "name": "test"
     },
     {
-      "path": "Tests",
-      "name": "Tests"
-    },
-    {
-      "path": "../.",
-      "name": "ProjectFiles"
+      "path": "docker",
+      "name": "docker"
     },
     {
       "path": ".",
-      "name": "SourceFiles"
+      "name": "root"
     }
   ],
   "settings": {
     "dotnet.defaultSolution": "Kbot.sln",
     "files.exclude": {
-      "Kbot.DcaService": true,
-      "Kbot.Common": true,
-      "Tests": true,
-      "Kbot.MailService": true,
+      ".github": true,
       "src": true,
+      "test": true,
+      "docker": true,
       "**/.git": true,
       "**/.svn": true,
       "**/.hg": true,
