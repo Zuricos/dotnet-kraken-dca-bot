@@ -18,7 +18,7 @@
     },
     {
       "path": ".",
-      "name": "SourceFiles"
+      "name": "root"
     }
   ],
   "settings": {
