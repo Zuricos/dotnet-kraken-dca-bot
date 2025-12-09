@@ -7,9 +7,7 @@ version: 2
 
 updates:
   - package-ecosystem: "nuget" # .NET NuGet packages
-    directory: "src" # Location of package manifests (root directory)
-    reviewers:
-      - "Zuricos"
+    directory: "." # Location of package manifests (root directory)
     schedule:
       interval: "monthly"
     groups:

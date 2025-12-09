@@ -26,7 +26,7 @@ jobs:
         uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: dca
-          paths: "src/Kbot.Common src/Kbot.DcaService"
+          paths: "src/Kbot.Common src/Kbot.DcaService docker/Kbot.DcaService.Dockerfile"
     outputs:
       version: ${{ steps.compute-version.outputs.version }}
       suffix: ${{ steps.compute-version.outputs.suffix }}
@@ -49,7 +49,7 @@ jobs:
         uses: Zuricos/gh-actions/docker-build-and-publish@main
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          context:  .
+          context: .
           dockerfile: docker/Kbot.DcaService.Dockerfile
           image-name: kraken-dca-service
           version-tag: ${{ needs.compute-version.outputs.version }}${{ needs.compute-version.outputs.suffix }}
@@ -65,4 +65,4 @@ jobs:
         with:
           subject-name: ghcr.io/zuricos/kraken-dca-service
           subject-digest: ${{ steps.build_and_publish.outputs.image-digest }}
-          push-to-registry: true 
+          push-to-registry: true
