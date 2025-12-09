@@ -39,7 +39,7 @@ public class ApiTestPublic
   {
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
     var result = await client.GetCurrentCryptoPrice();
-    Assert.IsTrue(result > 0, result.ToString());
+    Assert.IsGreaterThan(0, result, result.ToString());
   }
 
   [TestMethod]
@@ -48,8 +48,8 @@ public class ApiTestPublic
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
     var result = await client.CheckBalance();
     Assert.IsNotNull(result, "Result is null");
-    Assert.IsTrue(result["CHF"] > 0, result.ToString());
-    Assert.IsTrue(result["XXBT"] > 0, result.ToString());
+    Assert.IsGreaterThan(0, result["CHF"], result.ToString());
+    Assert.IsGreaterThan(0, result["XXBT"], result.ToString());
   }
 
   [TestMethod]
@@ -85,7 +85,7 @@ public class ApiTestPublic
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
     var result = await client.GetClosedOrders(fetchAll: false);
     Assert.IsNotNull(result, "Result is null");
-    Assert.IsTrue(result.Count > 0, "No orders found");
+    Assert.IsGreaterThan(0, result.Count, "No orders found");
     Assert.AreEqual(50, result.Count, "Expected 50 orders");
   }
 
@@ -95,7 +95,7 @@ public class ApiTestPublic
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
     var result = await client.GetClosedOrders(fetchAll: true);
     Assert.IsNotNull(result, "Result is null");
-    Assert.IsTrue(result.Closed.Count > 0, "No orders found");
+    Assert.IsNotEmpty(result.Closed, "No orders found");
     Assert.AreEqual(result.Closed.Count, result.Count, "No orders found");
   }
 }
