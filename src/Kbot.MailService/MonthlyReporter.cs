@@ -1,4 +1,4 @@
-using Kbot.DcaService.Models;
+using Kbot.MailService.Models;
 using Kbot.MailService.Options;
 using Kbot.MailService.Utility;
 using Microsoft.Extensions.Options;

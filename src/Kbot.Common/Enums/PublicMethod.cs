@@ -1,4 +1,4 @@
-﻿namespace Kbot.Common.Enums;
+namespace Kbot.Common.Enums;
 
 /// <summary>
 /// Public Methods supported by the API

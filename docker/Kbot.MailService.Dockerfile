@@ -5,11 +5,12 @@ USER app
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG configuration=Release
 WORKDIR /src
-COPY ["Kbot.Common/Kbot.Common.csproj", "Kbot.Common/"]
-COPY ["Kbot.MailService/Kbot.MailService.csproj", "Kbot.MailService/"]
+COPY src/Directory.Packages.props .
+COPY src/Kbot.Common/Kbot.Common.csproj Kbot.Common/
+COPY src/Kbot.MailService/Kbot.MailService.csproj Kbot.MailService/
 RUN dotnet restore "Kbot.MailService/Kbot.MailService.csproj"
 
-COPY . .
+COPY src/ ./
 WORKDIR "/src/Kbot.MailService"
 RUN dotnet build "Kbot.MailService.csproj" -c $configuration -o /app/build
 

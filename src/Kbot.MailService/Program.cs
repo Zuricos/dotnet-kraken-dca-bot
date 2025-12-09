@@ -1,4 +1,4 @@
-﻿using Kbot.MailService.Database;
+using Kbot.MailService.Database;
 using Kbot.MailService.Utility;
 using Serilog;
 

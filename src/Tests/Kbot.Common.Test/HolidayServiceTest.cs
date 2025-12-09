@@ -58,7 +58,7 @@ public class HolidayServiceTest
     var service = _serviceProvider.GetRequiredService<HolidayService>();
     await service.StartAsync(CancellationToken.None);
     DateTime utcNow = DateTime.UtcNow;
-    Assert.ThrowsException<ArgumentException>(() =>
+    Assert.ThrowsExactly<ArgumentException>(() =>
       service.IsHoliday(new DateTime(utcNow.Year + 2, 12, 25))
     );
   }
