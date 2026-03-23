@@ -14,9 +14,23 @@ public static class DcaStateHandler
   {
     if (File.Exists("state/state.json"))
     {
-      var json = File.ReadAllText("state/state.json");
-      return JsonSerializer.Deserialize<DcaState>(json, JsonSerializerOptions)
-        ?? throw new Exception("Failed to load state");
+      try
+      {
+        var json = File.ReadAllText("state/state.json");
+        return JsonSerializer.Deserialize<DcaState>(json, JsonSerializerOptions)
+          ?? throw new Exception("Failed to load state");
+      }
+      catch
+      {
+        // If error try to delete file and write new one
+        File.Delete("state/state.json");
+        return new DcaState
+        {
+          LastInvestmentTime = DateTime.MinValue,
+          NextTopUpTime = DateTime.MinValue,
+          TimeUntilNextTopUp = TimeSpan.Zero,
+        };
+      }
     }
     else
     {
