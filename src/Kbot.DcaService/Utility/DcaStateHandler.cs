@@ -5,6 +5,7 @@ namespace Kbot.DcaService.Utility;
 
 public static class DcaStateHandler
 {
+  private const string StateFilePath = "state/state.json";
   private static readonly JsonSerializerOptions JsonSerializerOptions = new()
   {
     WriteIndented = true,
@@ -12,11 +13,25 @@ public static class DcaStateHandler
 
   public static DcaState Load()
   {
-    if (File.Exists("state/state.json"))
+    if (File.Exists(StateFilePath))
     {
-      var json = File.ReadAllText("state/state.json");
-      return JsonSerializer.Deserialize<DcaState>(json, JsonSerializerOptions)
-        ?? throw new Exception("Failed to load state");
+      try
+      {
+        var json = File.ReadAllText(StateFilePath);
+        return JsonSerializer.Deserialize<DcaState>(json, JsonSerializerOptions)
+          ?? throw new Exception("Failed to load state");
+      }
+      catch
+      {
+        // If error try to delete file and write new one
+        File.Delete(StateFilePath);
+        return new DcaState
+        {
+          LastInvestmentTime = DateTime.MinValue,
+          NextTopUpTime = DateTime.MinValue,
+          TimeUntilNextTopUp = TimeSpan.Zero,
+        };
+      }
     }
     else
     {
@@ -34,13 +49,13 @@ public static class DcaStateHandler
     var json = JsonSerializer.Serialize(dcaState, JsonSerializerOptions);
     try
     {
-      File.WriteAllText("state/state.json", json);
+      File.WriteAllText(StateFilePath, json);
     }
     catch
     {
       // If error try to delete file and write new one
-      File.Delete("state/state.json");
-      File.WriteAllText("state/state.json", json);
+      File.Delete(StateFilePath);
+      File.WriteAllText(StateFilePath, json);
     }
   }
 }
