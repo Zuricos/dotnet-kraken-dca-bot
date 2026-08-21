@@ -7,6 +7,9 @@ reviewed and merged on its own. The dependency ordering, merge order and paralle
 Source of all findings: [../../REVIEW.md](../../REVIEW.md). Future feature ideas were moved out to
 [../../FUTURE_FEATURES.md](../../FUTURE_FEATURES.md) and are **not** part of this remediation set.
 
+**Executing now:** [../HANDOFF.md](../HANDOFF.md) carries the active wave, ready-to-paste agent
+prompts and the status board.
+
 ## Working protocol for agents
 
 1. **Pick a plan whose `Depends on` row is empty or fully merged.** Do not start a plan whose

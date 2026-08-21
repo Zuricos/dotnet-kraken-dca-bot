@@ -8,6 +8,9 @@ assigned to exactly one plan under [docs/plans/](plans/). Future feature ideas l
 until C-1 … C-5 are fixed."* Those five are Phase 1, items P1-01 … P1-04. Nothing in Phases 2–5 is
 more urgent than any of them.
 
+> **Currently executing:** [HANDOFF.md](HANDOFF.md) — Wave 0, the nine plans that need no
+> prerequisites, including all five critical findings. Start there.
+
 ---
 
 ## 1. How to use this roadmap

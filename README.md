@@ -69,6 +69,7 @@ Create a Subaccount for the DCA and create the api keys for it. If you want to t
 ### Project documentation
 - [REVIEW.md](REVIEW.md) — full code review of the repository (2026-08-21)
 - [docs/ROADMAP.md](docs/ROADMAP.md) — remediation roadmap: phases, dependencies, branch-per-fix plan
+- [docs/HANDOFF.md](docs/HANDOFF.md) — the wave currently being worked on, with status board
 - [docs/plans/](docs/plans/) — one implementation plan per finding
 - [FUTURE_FEATURES.md](FUTURE_FEATURES.md) — proposed features and their prerequisites
 
