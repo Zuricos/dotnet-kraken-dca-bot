@@ -488,7 +488,7 @@ Kraken accepts an *altname* (`XBTCHF`) but echoes its *canonical* name in respon
 2. [MailSenderService.cs:167](src/Kbot.MailService/Utility/MailSenderService.cs#L167) — the daily query filters `o.Pair == mailOptions.Value.CryptoPair` with exact string equality, but `Order.Pair` holds whatever Kraken returned in `descr.pair`. If they differ, the DB fills correctly while **every daily mail says "the dca bot didn't bought any crypto in the last 24 hours"** and points the user at the issue tracker. The monthly report has no pair filter and is unaffected — making the inconsistency baffling to diagnose.
 3. [CsvService.cs:17-19](src/Kbot.MailService/Utility/CsvService.cs#L17-L19) — `order.Pair[..^3]` / `[^3..]` assumes a 3-character quote asset. Verified: `XBTCHF`→`XBT`/`CHF` ✅, `XXBTZUSD`→`XXBTZ`/`USD` ❌, `ETHUSDT`→`ETHU`/`SDT` ❌.
 
-**Action:** Resolve the canonical name once at startup via Kraken's `AssetPairs` endpoint (which also yields `pair_decimals`, `lot_decimals`, and `ordermin` — fixing the hardcoded rounding in H-13 and letting you validate `MinOrderVolume`). Cache it and use it for both the ticker lookup and the report filter. As an immediate mitigation, when the filtered 24 h query returns zero rows but the unfiltered one does not, log the pairs actually present.
+**Action:** Resolve the canonical name once at startup via Kraken's `AssetPairs` endpoint (which also yields `pair_decimals`, `lot_decimals`, and `ordermin` — fixing the hardcoded rounding in M-3 and letting you validate `MinOrderVolume`). Cache it and use it for both the ticker lookup and the report filter. As an immediate mitigation, when the filtered 24 h query returns zero rows but the unfiltered one does not, log the pairs actually present.
 
 ---
 
@@ -642,6 +642,10 @@ Docker gets the fundamentals right — `--platform=$BUILDPLATFORM` correctly cro
 
 Sequenced so each phase is independently shippable.
 
+> **Executable version:** the phases below are broken into 37 branch-sized plans — one per
+> finding, or one per tightly-coupled group — with dependencies, merge order and parallel waves
+> in [docs/ROADMAP.md](docs/ROADMAP.md) and the specs in [docs/plans/](docs/plans/).
+
 **Phase 1 — Stop the bleeding** *(≈1 day)*
 Gate the live tests (C-1). Guard both sentinel call sites (C-2, C-3). Clamp the top-up day and reorder the state save (C-4). Wrap both loops in try/catch with backoff (C-5). Add `ci.yml` running build + test (H-3).
 
@@ -670,60 +674,12 @@ README (PostgreSQL, AGPL-3.0, UTC semantics), reconcile versioning, add `CONTRIB
 
 ## 10. Future Feature Suggestions
 
-### F-1 · Self-monitoring: health endpoint, metrics, and a dead-man's switch
+**Moved out of this review** — see [FUTURE_FEATURES.md](FUTURE_FEATURES.md).
 
-**Why this first:** the bot's core failure mode is *silence*. Every critical finding above ends the same way — the container looks healthy while quietly not trading, or crash-loops with the reason visible only in a log file on a Raspberry Pi. There is no healthcheck anywhere, and `restart: unless-stopped` cannot detect a worker hung in `Task.Delay`. The mail service was clearly *intended* as the monitoring channel, but it dies for exactly the same reasons the DCA service does — and its "No Orders" mail blames the user's funding rather than reporting the outage.
-
-**Shape:**
-- Switch both workers to `Microsoft.NET.Sdk.Web` and expose `/health/live` + `/health/ready` via `AddHealthChecks()` — Kraken reachability, DB connectivity, holiday-cache populated, last-successful-cycle age.
-- Add `HEALTHCHECK` to both Dockerfiles and `depends_on: { kraken-database: { condition: service_healthy } }` to compose, closing M-17 and M-21.
-- Export Prometheus metrics via `OpenTelemetry.Exporter.Prometheus.AspNetCore`: `kbot_orders_placed_total`, `kbot_order_failures_total`, `kbot_balance_fiat`, `kbot_cycle_duration_seconds`, `kbot_last_successful_cycle_timestamp`.
-- **Dead-man's switch:** if no successful cycle completes within `N × MaxWaitTime`, send an alert mail *and* mark unhealthy. This is the piece that would have caught C-2's zero-price loop, C-3's crash-loop, and H-5's silent data gap.
-
-Ships naturally with Phase 4, and makes every other fix verifiable in production.
-
----
-
-### F-2 · Multi-pair weighted DCA portfolio
-
-**Why:** the README already advertises *"Support for multiple cryptocurrencies"* under Features, but `OrderOptions.CryptoPair` is a single string and the whole worker is built around one pair. This is the largest gap between what the project promises and what it does.
-
-**Shape:** replace the scalar with a weighted list:
-```jsonc
-"OrderOptions": {
-  "Positions": [
-    { "Pair": "XBTCHF", "Weight": 0.70, "MinOrderVolume": 0.00005 },
-    { "Pair": "ETHCHF", "Weight": 0.30, "MinOrderVolume": 0.002   }
-  ]
-}
-```
-The existing interval engine generalises cleanly: compute `costForVolume` per position, then `interval_i = timeUntilNextTopUp / ((balanceFiat × weight_i) / costForVolume_i)`, tracking `LastInvestmentTime` per position in `DcaState`. Validate that weights sum to 1.
-
-This depends on I-3 (resolving canonical pair names and per-pair `pair_decimals`/`lot_decimals`/`ordermin` from `AssetPairs`) and on M-3 — which is exactly why the hardcoded 1-decimal rounding must be fixed first. Rebalancing to target weights on each top-up is a natural follow-on.
-
----
-
-### F-3 · Pluggable DCA strategies (dip-boosting / value averaging)
-
-**Why:** the scheduling engine is already the strongest part of the codebase, and it currently supports exactly one policy — uniform time-weighted DCA. Once Phase 3 has extracted `DcaPlanner` into a pure function, alternative policies are a small, well-isolated addition with a real payoff, and they are the project's most credible differentiator against exchange-native recurring-buy features.
-
-**Shape:**
-```csharp
-public interface IDcaStrategy
-{
-    CycleDecision Decide(CycleInput input, PriceHistory history);
-}
-```
-with selectable implementations:
-- `UniformDca` — today's behaviour, the default.
-- `DipWeightedDca` — scale order size by deviation from an N-day moving average (e.g. 1.5× at −10 %, 0.5× at +10 %), clamped to keep the balance on track for the top-up date. Needs a rolling price series, which F-1's metrics store or a small `PriceSample` table gives you.
-- `ValueAveraging` — target a portfolio *value* trajectory rather than a spend trajectory, buying more when below target.
-
-Every strategy stays a pure function of `(CycleInput, PriceHistory)`, so each is unit-testable against recorded price series — and back-testable offline, which the current architecture makes impossible. Report the active strategy and its multiplier in the daily mail so the user can see why a given day's buy was larger.
-
----
-
-*Runners-up considered:* a two-way mail/Telegram command interface (the README already anticipates this — *"there will be more features in the future, like responding to mail/rcs commands"*), and a FIFO cost-basis tax export, which would be genuinely useful given the project's Swiss framing and the fact that the full order history is already in PostgreSQL.
+Three proposals were developed there (F-1 self-monitoring with a health endpoint, metrics and a
+dead-man's switch · F-2 multi-pair weighted DCA portfolio · F-3 pluggable DCA strategies), together
+with their prerequisites and two runners-up. They are feature work, not defects, and are deliberately
+kept out of the remediation scheduling in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 

@@ -66,6 +66,17 @@ Please have a look at the wiki [https://github.com/Zuricos/dotnet-kraken-dca-bot
 Create a Subaccount for the DCA and create the api keys for it. If you want to trade without the bot intercept your trading wallet and use the money which is designed for trading.
 -> See [https://docs.kraken.com/api/docs/rest-api/create-subaccount](https://docs.kraken.com/api/docs/rest-api/create-subaccount)
 
+### Project documentation
+- [REVIEW.md](REVIEW.md) — full code review of the repository (2026-08-21)
+- [docs/ROADMAP.md](docs/ROADMAP.md) — remediation roadmap: phases, dependencies, branch-per-fix plan
+- [docs/plans/](docs/plans/) — one implementation plan per finding
+- [FUTURE_FEATURES.md](FUTURE_FEATURES.md) — proposed features and their prerequisites
+
+> ⚠️ Some tests in this repository currently place **real orders on live Kraken** and send real
+> mail. Do not run `dotnet test` with valid credentials configured until the test-gating fix
+> ([docs/plans/p1-01-c1-gate-live-trading-tests.md](docs/plans/p1-01-c1-gate-live-trading-tests.md))
+> has been merged.
+
 ### Contributing
 Contributions are welcome! Just reach out to me over an issue or the like.
 
