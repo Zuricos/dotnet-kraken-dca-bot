@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!--
+    Apply the repo-root .runsettings, whose category filter keeps the LiveExchange / LiveApi tests
+    out of a plain `dotnet test`.
+
+    Only when no filter was passed on the command line: vstest ANDs a command-line filter with the
+    one from a settings file, which would reduce a run filtered to TestCategory=LiveExchange to an
+    empty test set. A command-line filter arrives here as the global property VSTestTestCaseFilter,
+    so an explicit filter takes the settings file out of the picture and replaces it. What protects
+    the live tests in that case is the runtime opt-in check in Shared/LiveGuard.cs.
+  -->
+  <PropertyGroup Condition="'$(VSTestTestCaseFilter)' == ''">
+    <RunSettingsFilePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../.runsettings'))</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared/LiveGuard.cs" Link="LiveGuard.cs" />
+    <Using Include="Kbot.Testing" />
+  </ItemGroup>
+</Project>

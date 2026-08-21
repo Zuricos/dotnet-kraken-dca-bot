@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default run settings for Kbot.sln.
+
+  `dotnet test` must never place a real order or send real mail. Tests that talk to the live
+  Kraken exchange, an SMTP server or any other network endpoint are tagged
+  [TestCategory("LiveExchange")] (writes: orders and mail) or [TestCategory("LiveApi")]
+  (reads that need live credentials or network) and are excluded here by default.
+
+  See the "Running the tests" section of README.md for how to run them deliberately.
+
+  test/Directory.Build.props applies this file only when no filter was passed on the command
+  line, so an explicit filter replaces the one below instead of being ANDed with it. The
+  LiveExchange tests therefore also call LiveGuard.RequireOptIn() at runtime, which refuses to
+  run them unless KBOT_ALLOW_LIVE_TRADING=1 (see test/Shared/LiveGuard.cs).
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TestCaseFilter>TestCategory!=LiveExchange&amp;TestCategory!=LiveApi</TestCaseFilter>
+  </RunConfiguration>
+</RunSettings>
