@@ -111,7 +111,9 @@ public class ReportContentTest
     ];
 
     using var reader = new StreamReader(aggregated.ToCsv());
-    var lines = reader.ReadToEnd().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+    var lines = reader
+      .ReadToEnd()
+      .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
     Assert.AreEqual("Date,Volume,Price,Crypto,Fiat,OrderType,Fee", lines[0]);
     Assert.AreEqual(aggregated.Count + 1, lines.Length);

@@ -85,7 +85,10 @@ public class KrakenApiRequestShapeTest
     Assert.IsNotNull(handler.Request, "No request reached the transport.");
     Assert.AreEqual(HttpMethod.Post, handler.Request.Method);
     Assert.AreEqual("/0/private/AddOrder", handler.Request.RequestUri!.AbsolutePath);
-    Assert.AreEqual("https://api.kraken.com", handler.Request.RequestUri.GetLeftPart(UriPartial.Authority));
+    Assert.AreEqual(
+      "https://api.kraken.com",
+      handler.Request.RequestUri.GetLeftPart(UriPartial.Authority)
+    );
 
     var body = JsonNode.Parse(handler.Body!)!.AsObject();
     Assert.AreEqual("XBTCHF", (string?)body["pair"]);
@@ -174,8 +177,9 @@ public class KrakenApiRequestShapeTest
     )
     {
       Request = request;
-      Body =
-        request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+      Body = request.Content is null
+        ? null
+        : await request.Content.ReadAsStringAsync(cancellationToken);
       return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
       {
         Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
