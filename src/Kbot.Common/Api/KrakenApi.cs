@@ -14,8 +14,8 @@ public sealed class KrakenApi : IDisposable
 {
   private static readonly Uri BaseAddress = new("https://api.kraken.com");
 
-  private readonly ILogger<KrakenApi> logger;
-  private readonly IOptions<Secrets> secrets;
+  private readonly ILogger<KrakenApi> _logger;
+  private readonly IOptions<Secrets> _secrets;
   private readonly string _apiVersion = "0";
   private readonly HttpClient _httpClient;
 
@@ -36,8 +36,8 @@ public sealed class KrakenApi : IDisposable
 
   private KrakenApi(ILogger<KrakenApi> logger, IOptions<Secrets> secrets, HttpClient httpClient)
   {
-    this.logger = logger;
-    this.secrets = secrets;
+    _logger = logger;
+    _secrets = secrets;
     _httpClient = httpClient;
   }
 
@@ -66,12 +66,12 @@ public sealed class KrakenApi : IDisposable
     }
     catch (HttpRequestException e)
     {
-      logger.LogError("Request error occurred: {Message}", e.Message);
+      _logger.LogError("Request error occurred: {Message}", e.Message);
       return null;
     }
     catch (Exception e)
     {
-      logger.LogError("An unexpected error occurred: {Message}", e.Message);
+      _logger.LogError("An unexpected error occurred: {Message}", e.Message);
       return null;
     }
   }
@@ -84,7 +84,7 @@ public sealed class KrakenApi : IDisposable
     try
     {
       var urlPath = $"/{_apiVersion}/private/{method}";
-      var s = secrets.Value.ApiKey;
+      var s = _secrets.Value.ApiKey;
       // Add nonce
       var nonce = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
       body.Add("nonce", nonce);
@@ -95,14 +95,14 @@ public sealed class KrakenApi : IDisposable
         urlPath,
         new Dictionary<string, object>
         {
-          { "API-Key", secrets.Value.ApiKey },
+          { "API-Key", _secrets.Value.ApiKey },
           { "API-Sign", signature },
         },
         jsonBody
       );
       if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
       {
-        logger.LogWarning("Rate limit exceeded. Please try again later.");
+        _logger.LogWarning("Rate limit exceeded. Please try again later.");
         return null;
       }
       response.EnsureSuccessStatusCode();
@@ -112,12 +112,12 @@ public sealed class KrakenApi : IDisposable
     }
     catch (HttpRequestException e)
     {
-      logger.LogError("Request error occurred: {Message}", e.Message);
+      _logger.LogError("Request error occurred: {Message}", e.Message);
       return null;
     }
     catch (Exception e)
     {
-      logger.LogError("An unexpected error occurred in QueryPrivateAsync: {Message}", e.Message);
+      _logger.LogError("An unexpected error occurred in QueryPrivateAsync: {Message}", e.Message);
       return null;
     }
   }
@@ -150,7 +150,7 @@ public sealed class KrakenApi : IDisposable
     Buffer.BlockCopy(message, 0, combinedMessage, 0, message.Length);
     Buffer.BlockCopy(shaSum, 0, combinedMessage, message.Length, shaSum.Length);
 
-    byte[] secretBytes = Convert.FromBase64String(secrets.Value.ApiSecret);
+    byte[] secretBytes = Convert.FromBase64String(_secrets.Value.ApiSecret);
     using var hmac = new HMACSHA512(secretBytes);
     var macSum = hmac.ComputeHash(combinedMessage);
     return Convert.ToBase64String(macSum);
