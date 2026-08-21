@@ -15,7 +15,7 @@ then follow §8 to produce the next handoff.
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
 | What has been fixed | **Nothing.** All 64 findings are open. This handoff starts the execution. |
-| Branch state | `main` = upstream. `review-and-fix` = `main` + the review + these docs. No code changes anywhere. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. No code changes anywhere yet. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
@@ -36,17 +36,26 @@ all in Wave 0 and they are the point of this handoff.
 
 ---
 
-## 3. Base branch decision (do this first)
+## 3. Base branch — `review-and-fix` is the integration branch
 
-The plans live on `review-and-fix`, which is documentation only. Pick one:
+Every work branch **bases on `review-and-fix`** and **PRs back into `review-and-fix`**. `main` stays
+untouched; the maintainer merges the accumulated work into it when they choose. No plan targets `main`.
 
-- **Recommended:** merge `review-and-fix` into `main` now (docs-only, zero risk). Then every work
-  branch bases on `main` and PRs into `main` — clean, independent PRs.
-- **Alternative:** leave it open and base work branches on `review-and-fix`. Work PRs then target
-  `review-and-fix`, and merging it to `main` brings the docs plus whatever has landed.
+**Do this once before dispatching anything** — `review-and-fix` is currently local-only, and GitHub
+cannot open a PR against a branch it does not have:
 
-Everything below assumes the recommended path (`origin/main`). If you take the alternative, substitute
-`origin/review-and-fix` everywhere.
+```bash
+git push -u origin review-and-fix
+```
+
+Every prompt in §5 starts from `origin/review-and-fix` on that basis. As PRs land, keep in-flight
+branches current so each PR diff stays limited to its own plan:
+
+```bash
+git fetch origin && git rebase origin/review-and-fix
+```
+
+If you ever see a plan or an older doc say "base on `main`", it is stale — this section wins.
 
 ---
 
@@ -95,7 +104,7 @@ Read docs/plans/p1-01-c1-gate-live-trading-tests.md and implement exactly that p
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c test/p1-c1-gate-live-trading-tests origin/main
+Branch: git switch -c test/p1-c1-gate-live-trading-tests origin/review-and-fix
 
 Context you need: this repo's test suite currently places REAL buy orders on live Kraken and sends
 real email. Your job is to make `dotnet test Kbot.sln` safe by default. Until your change is in,
@@ -105,7 +114,7 @@ Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
 - Conventional commit messages (test:, fix:, refactor:, ci:, chore:, docs:), one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "test: P1-01 gate the live-trading tests (C-1)", body linking
+- Then open a PR into review-and-fix titled "test: P1-01 gate the live-trading tests (C-1)", body linking
   docs/plans/p1-01-c1-gate-live-trading-tests.md, listing what you verified, and naming anything
   you deliberately left out.
 ```
@@ -121,7 +130,7 @@ Read docs/plans/p1-02-c2-c3-guard-worker-sentinels.md and implement exactly that
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-c2-c3-guard-worker-sentinels origin/main
+Branch: git switch -c fix/p1-c2-c3-guard-worker-sentinels origin/review-and-fix
 
 Context you need: KrakenClient signals every error with an in-band sentinel ([], 0.0, false, null)
 and DcaWorker checks none of them. A failed ticker call returns 0.0, which cascades into placing
@@ -139,7 +148,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)",
+- Then open a PR into review-and-fix titled "fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)",
   body linking the plan file, listing what you verified, and naming anything left out.
 ```
 </details>
@@ -154,7 +163,7 @@ Read docs/plans/p1-03-c4-topup-day-clamp-and-state-order.md and implement exactl
 the spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-c4-topup-day-clamp-and-state-order origin/main
+Branch: git switch -c fix/p1-c4-topup-day-clamp-and-state-order origin/review-and-fix
 
 Context you need: DefaultTopupDayOfMonth accepts 1-31, but new DateTime(2026, 4, 31) throws. The
 throw happens AFTER a successful order is sent and BEFORE the state is persisted, so the host dies,
@@ -170,7 +179,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-03 clamp the top-up day and persist state before
+- Then open a PR into review-and-fix titled "fix: P1-03 clamp the top-up day and persist state before
   bookkeeping (C-4)", body linking the plan file, listing what you verified, and naming anything
   left out.
 ```
@@ -186,7 +195,7 @@ Read docs/plans/p1-04-c5-worker-loop-resilience.md and implement exactly that pl
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-c5-worker-loop-resilience origin/main
+Branch: git switch -c fix/p1-c5-worker-loop-resilience origin/review-and-fix
 
 Context you need: neither BackgroundService loop has any exception handling, so every throw in this
 codebase stops the host; `restart: unless-stopped` then restarts it, and each restart with stale
@@ -203,7 +212,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-04 worker loop resilience and backoff (C-5)", body
+- Then open a PR into review-and-fix titled "fix: P1-04 worker loop resilience and backoff (C-5)", body
   linking the plan file, listing what you verified, and naming anything left out.
 ```
 </details>
@@ -218,7 +227,7 @@ Read docs/plans/p1-06-h4-dockerignore-and-secret-copy.md and implement exactly t
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-h4-dockerignore-and-secret-copy origin/main
+Branch: git switch -c fix/p1-h4-dockerignore-and-secret-copy origin/review-and-fix
 
 Context you need: docker/.dockerignore is in a directory Docker never consults for this build
 context, so it has no effect — the whole repo including .git is uploaded, and the csprojs
@@ -230,7 +239,7 @@ Rules:
 - Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the docker build.
-- Then open a PR into main titled "fix: P1-06 move .dockerignore to the repo root and stop copying
+- Then open a PR into review-and-fix titled "fix: P1-06 move .dockerignore to the repo root and stop copying
   secrets.json (H-4)", body linking the plan file and listing what you verified.
 ```
 </details>
@@ -245,7 +254,7 @@ Read docs/plans/p1-07-h10-tighten-options-validators.md and implement exactly th
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-h10-tighten-options-validators origin/main
+Branch: git switch -c fix/p1-h10-tighten-options-validators origin/review-and-fix
 
 Context you need: every numeric validator rule uses >= 0 instead of > 0, so WaitOptions with
 MinWaitTime = MaxWaitTime = 00:00:00 passes validation and turns the trading loop into a busy loop
@@ -264,7 +273,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-07 tighten the options validators (H-10)", body linking
+- Then open a PR into review-and-fix titled "fix: P1-07 tighten the options validators (H-10)", body linking
   the plan file, listing what you verified, and naming anything left out.
 ```
 </details>
@@ -279,7 +288,7 @@ Read docs/plans/p1-08-h11-database-credentials-exposure.md and implement exactly
 the spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-h11-database-credentials-exposure origin/main
+Branch: git switch -c fix/p1-h11-database-credentials-exposure origin/review-and-fix
 
 Context you need: a Postgres password is committed in docker/stack.env AND baked into
 src/Kbot.MailService/appsettings.json (therefore into the published image), while the compose file
@@ -296,7 +305,7 @@ Rules:
 - Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-08 remove the committed DB password and published
+- Then open a PR into review-and-fix titled "fix: P1-08 remove the committed DB password and published
   Postgres port (H-11)", body linking the plan file and listing what you verified.
 ```
 </details>
@@ -311,7 +320,7 @@ Read docs/plans/p1-09-m16-redact-secrets-in-logs.md and implement exactly that p
 spec — follow its Scope section, respect its Out of scope list, and satisfy every acceptance
 criterion.
 
-Branch: git switch -c fix/p1-m16-redact-secrets-in-logs origin/main
+Branch: git switch -c fix/p1-m16-redact-secrets-in-logs origin/review-and-fix
 
 Context you need: Secrets and MailSecrets are records, so the synthesized ToString() prints the
 Kraken API secret and the Gmail app password in clear text. This codebase logs whole records and
@@ -326,7 +335,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
-- Then open a PR into main titled "fix: P1-09 stop logging the API secret (M-16)", body linking the
+- Then open a PR into review-and-fix titled "fix: P1-09 stop logging the API secret (M-16)", body linking the
   plan file and listing what you verified.
 ```
 </details>
@@ -340,7 +349,7 @@ Work in the repo dotnet-kraken-dca-bot.
 Read docs/plans/p2-02-h1-invariant-culture.md and implement exactly that plan. It is the spec —
 follow its Scope section, respect its Out of scope list, and satisfy every acceptance criterion.
 
-Branch: git switch -c fix/p2-h1-invariant-culture origin/main
+Branch: git switch -c fix/p2-h1-invariant-culture origin/review-and-fix
 
 Context you need: Kraken returns all numerics as strings and every one is parsed with the ambient
 culture. Under de-DE, double.Parse("0.00005") returns 5 — a 100,000x error; under fr-FR it throws.
@@ -358,7 +367,7 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the de-DE / fr-FR runs.
-- Then open a PR into main titled "fix: P2-02 pin InvariantCulture on every wire value (H-1)", body
+- Then open a PR into review-and-fix titled "fix: P2-02 pin InvariantCulture on every wire value (H-1)", body
   linking the plan file and listing what you verified.
 ```
 </details>
@@ -366,6 +375,11 @@ Rules:
 ---
 
 ## 6. Definition of done, per PR
+
+> There is no CI yet — plan **P1-05** adds it, and it is gated behind P1-01. Until then these
+> checks are yours to run locally. Note that the two existing publish workflows are filtered to
+> `pull_request: branches: [main]`, so PRs into `review-and-fix` trigger **nothing** — no image
+> is built or pushed by this work.
 
 - Every acceptance criterion in the plan is met.
 - `dotnet build Kbot.sln -warnaserror` clean.

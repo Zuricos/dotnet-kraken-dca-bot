@@ -14,15 +14,14 @@ prompts and the status board.
 
 1. **Pick a plan whose `Depends on` row is empty or fully merged.** Do not start a plan whose
    prerequisites are still open — the roadmap says what unlocks what.
-2. **Branch from the current `main`** (unless the roadmap's *Base* column says otherwise), using the
-   exact branch name in the plan's header table:
+2. **Branch from `review-and-fix`** — the integration branch for all of this work — using the exact
+   branch name in the plan's header table:
    ```bash
    git fetch origin
-   git switch -c <branch-name> origin/main
+   git switch -c <branch-name> origin/review-and-fix
    ```
-   The `review-and-fix` branch carries only documentation (`REVIEW.md`, `docs/`,
-   `FUTURE_FEATURES.md`). If it has not been merged to `main` yet, branch from `review-and-fix`
-   instead so the plan file you are following is present in your tree.
+   Open the PR **into `review-and-fix`**, not `main`. `main` stays untouched until the maintainer
+   merges the accumulated work in one go. See [../HANDOFF.md](../HANDOFF.md) §3.
 3. **Stay inside the plan's scope.** Each plan has an explicit *Out of scope* list; the items in it
    belong to another branch and touching them creates merge conflicts for someone else. If you find
    a new problem, note it in the PR description — do not fix it here.

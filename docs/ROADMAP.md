@@ -22,8 +22,9 @@ more urgent than any of them.
   files.
 - **Conflict surface** names files that other in-flight plans also touch. Two agents *can* work on
   overlapping files; expect a rebase. The suggested merge order in §4 minimises that.
-- Branch from `main` (or from `review-and-fix` while it is unmerged — it carries these docs).
-  The working protocol is in [plans/README.md](plans/README.md).
+- Branch from **`review-and-fix`** and PR back into it; `main` stays untouched until the maintainer
+  merges the accumulated work. The working protocol is in [plans/README.md](plans/README.md), the
+  base-branch details in [HANDOFF.md](HANDOFF.md) §3.
 
 ---
 

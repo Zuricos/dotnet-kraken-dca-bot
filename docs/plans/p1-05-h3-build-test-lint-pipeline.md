@@ -31,7 +31,9 @@ Two compounding defects:
 ## Scope
 
 ### In scope
-1. New `.github/workflows/ci.yml`, on `push` (all branches) and `pull_request`, **no `paths:` filter**:
+1. New `.github/workflows/ci.yml`, on `push` (all branches) and `pull_request`, with **no `paths:`
+   filter and no `branches:` filter** — remediation PRs target the `review-and-fix` integration
+   branch, not `main`, so a `branches: [main]` filter would leave every one of them ungated:
    - `actions/checkout@<sha>`, `actions/setup-dotnet@<sha>` with the SDK version from
      `global.json`/`Directory.Build.props` (verify which pins .NET 10).
    - `dotnet restore Kbot.sln`
