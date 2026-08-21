@@ -10,13 +10,36 @@ using Microsoft.Extensions.Options;
 
 namespace Kbot.Common.Api;
 
-public sealed class KrakenApi(ILogger<KrakenApi> logger, IOptions<Secrets> secrets) : IDisposable
+public sealed class KrakenApi : IDisposable
 {
+  private static readonly Uri BaseAddress = new("https://api.kraken.com");
+
+  private readonly ILogger<KrakenApi> logger;
+  private readonly IOptions<Secrets> secrets;
   private readonly string _apiVersion = "0";
-  private readonly HttpClient _httpClient = new()
+  private readonly HttpClient _httpClient;
+
+  public KrakenApi(ILogger<KrakenApi> logger, IOptions<Secrets> secrets)
+    : this(logger, secrets, new HttpClient { BaseAddress = BaseAddress }) { }
+
+  /// <summary>
+  /// Test seam: lets a stub <see cref="HttpMessageHandler"/> stand in for the real transport, so
+  /// the shape of a signed request can be asserted without reaching Kraken. Replacing the
+  /// hand-built <see cref="HttpClient"/> with IHttpClientFactory is tracked separately (P4-03).
+  /// </summary>
+  internal KrakenApi(
+    ILogger<KrakenApi> logger,
+    IOptions<Secrets> secrets,
+    HttpMessageHandler handler
+  )
+    : this(logger, secrets, new HttpClient(handler) { BaseAddress = BaseAddress }) { }
+
+  private KrakenApi(ILogger<KrakenApi> logger, IOptions<Secrets> secrets, HttpClient httpClient)
   {
-    BaseAddress = new Uri("https://api.kraken.com"),
-  };
+    this.logger = logger;
+    this.secrets = secrets;
+    _httpClient = httpClient;
+  }
 
   public void Dispose()
   {
