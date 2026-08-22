@@ -50,8 +50,21 @@ public sealed class KrakenClient(ILogger<KrakenClient> logger, KrakenApi api) : 
       );
       if (HasError(response))
         return 0.0;
-      TickerInfo tickerInfo;
-      tickerInfo = response.Result![pair].Parse();
+
+      // Kraken answers with its own canonical pair name (XXBTZUSD) even when asked for an alias
+      // (XBTUSD), so the single entry is taken by value instead of indexed by the requested name.
+      // Resolving alias and canonical names properly is P2-05.
+      if (response.Result!.Count != 1)
+      {
+        logger.LogError(
+          "Ticker for {Pair} returned {Count} entries (keys: {Keys}); no price to use.",
+          pair,
+          response.Result!.Count,
+          string.Join(", ", response.Result!.Keys)
+        );
+        return 0.0;
+      }
+      var tickerInfo = response.Result!.Values.Single().Parse();
 
       logger.LogInformation(
         "Current pair {Pair} price is: {CurrentPrice}",
@@ -62,7 +75,7 @@ public sealed class KrakenClient(ILogger<KrakenClient> logger, KrakenApi api) : 
     }
     catch (Exception e)
     {
-      logger.LogError("Could not query the current price: {Error}", e.Message);
+      logger.LogError("Could not query the current price of {Pair}: {Error}", pair, e.Message);
       return 0.0;
     }
   }
