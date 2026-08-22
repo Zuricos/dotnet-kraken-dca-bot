@@ -4,5 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!--
+      The Worker SDK globs `**/*.json` into Content with CopyToOutputDirectory and
+      CopyToPublishDirectory set, and the publish output is what becomes the container image.
+      Keep the files .gitignore treats as local-only (`*secrets.json`, `*state.json`) out of that
+      glob so a developer's credentials or state can never be copied next to the binaries, let
+      alone shipped. Runtime secrets come from /run/secrets/*, user secrets or environment
+      variables; the state file lives in the mounted state/ directory.
+    -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/*secrets.json;**/*state.json</DefaultItemExcludes>
   </PropertyGroup>
 </Project>

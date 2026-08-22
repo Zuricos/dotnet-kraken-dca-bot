@@ -20,13 +20,13 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="secrets.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <!--
+      Only appsettings.json is copied. A local secrets.json must never be copied to the output
+      directory: the publish output becomes the image, so that would ship developer credentials.
+      Secrets come from /run/secrets/dca-secrets, user secrets or environment variables, and the
+      state file lives at state/state.json (a mounted volume), not next to the binary.
+    -->
     <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="state.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
