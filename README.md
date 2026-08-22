@@ -62,6 +62,14 @@ Then it will wait about 24 hours until the next mail should be sent.
 ### Installation
 Please have a look at the wiki [https://github.com/Zuricos/dotnet-kraken-dca-bot/wiki/Installation](https://github.com/Zuricos/dotnet-kraken-dca-bot/wiki/Installation)
 
+> **Set your own database password in both places before the first start.** `POSTGRES_PASSWORD` in
+> [docker/stack.env](docker/stack.env) ships as the placeholder `<CHANGE_ME>`, and the matching
+> `ConnectionStrings:Kraken` belongs in your mail-service docker secret file (see
+> [src/docker.mail.secrets-template.json](src/docker.mail.secrets-template.json)) — the two passwords
+> must be identical. `mail-service` refuses to start if the connection string is missing. If you
+> already deployed an earlier version, that database is still using the password published in this
+> repository: change it and recreate the stack.
+
 ## Miscellaneous
 ### Tipps
 Create a Subaccount for the DCA and create the api keys for it. If you want to trade without the bot intercept your trading wallet and use the money which is designed for trading.
