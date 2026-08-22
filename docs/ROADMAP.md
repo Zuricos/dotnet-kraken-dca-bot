@@ -148,7 +148,7 @@ merge order matters (see the note below) but their *development* does not.
 | ~~P1-02~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | C-2, C-3 |
 | ~~P1-03~~ ✅ merged | `fix/p1-c4-topup-day-clamp-and-state-order` | C-4 |
 | ~~P1-04~~ ✅ merged | `fix/p1-c5-worker-loop-resilience` | C-5 |
-| P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
+| ~~P1-06~~ ✅ merged | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | H-10 |
 | ~~P1-08~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | M-16 |
@@ -229,7 +229,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | H-1 | P2-02 | M-6 | P4-09 |
 | H-2 | P2-03 | M-7 | P4-08 |
 | H-3 | P1-05 | M-8 | P4-08 |
-| H-4 | P1-06 | M-9 | P4-10 |
+| H-4 ✅ | P1-06 *(merged)* | M-9 | P4-10 |
 | H-5 | P2-07 | M-10 | P4-05 (also noted in P4-10) |
 | H-6 | P4-01 | M-11 | P4-03 |
 | H-7 | P4-02 | M-12 | P4-08 |
@@ -273,6 +273,7 @@ order up front.
 | `src/Kbot.MailService/Utility/OrderService.cs` | P2-01, P2-04, P2-06, P4-08 | P2-01 → P2-06 → P2-04 → P4-08 |
 | `src/Kbot.MailService/Migrations/**` | P2-03, P2-04 | P2-03 → P2-04 (**never in parallel** — two pending migrations conflict) |
 | `.github/workflows/**` | P1-05, P2-09, P5-02 | P1-05 → P2-09 → P5-02 |
+| `Directory.Build.props` | P1-06 ✅, P2-02, P5-04 | P1-06 *(merged — added `DefaultItemExcludes`)* → P2-02 *(analyzers)* → P5-04 *(`TreatWarningsAsErrors`)* |
 | `docker/example-compose.yaml` | P1-08 ✅, P4-06, P5-02 | P1-08 *(merged)* → P4-06 → P5-02 |
 | `docker/stack.env` | P1-08 ✅, P2-08, P4-10 | P1-08 *(merged)* → P2-08 → P4-10 |
 | `README.md` | P4-05, P5-01, P5-02, P5-03 | P5-01 → P5-02 → P5-03 (P4-05 adds one section; merge whenever) |

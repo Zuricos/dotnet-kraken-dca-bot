@@ -4,5 +4,42 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!--
+      The Worker SDK globs `**/*.json` into Content with CopyToOutputDirectory and
+      CopyToPublishDirectory set, and the publish output is what becomes the container image.
+      Keep the files .gitignore treats as local-only (`*secrets.json`, `*state.json`) out of that
+      glob so a developer's credentials or state can never be copied next to the binaries, let
+      alone shipped. Runtime secrets come from /run/secrets/*, user secrets or environment
+      variables; the state file lives in the mounted state/ directory.
+    -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/*secrets.json;**/*state.json</DefaultItemExcludes>
   </PropertyGroup>
+
+  <!--
+    Regression guard for the exclusion above (finding H-4). It runs on every `dotnet build` and
+    `dotnet publish`, for every project in the repo, so it fails a CI build too: reverting the
+    property, or re-adding a `<None Update="secrets.json"><CopyToOutputDirectory>` to a csproj,
+    breaks the build instead of silently shipping credentials in the next image.
+  -->
+  <Target Name="GuardLocalOnlyFilesOutOfOutput" BeforeTargets="Build;Publish">
+    <ItemGroup>
+      <!-- Anything the SDK globbed into Content is copied to the output and the publish directory. -->
+      <_LocalOnlyFileMarkedForCopy
+        Include="@(Content)"
+        Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Content.Filename)%(Content.Extension)', '(secrets|state)\.json$'))"
+      />
+      <!-- None items are only a problem once they carry copy metadata, which is how H-4 started. -->
+      <_LocalOnlyFileMarkedForCopy
+        Include="@(None)"
+        Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(None.Filename)%(None.Extension)', '(secrets|state)\.json$'))
+                   And (('%(None.CopyToOutputDirectory)' != '' And '%(None.CopyToOutputDirectory)' != 'Never')
+                     Or ('%(None.CopyToPublishDirectory)' != '' And '%(None.CopyToPublishDirectory)' != 'Never'))"
+      />
+    </ItemGroup>
+    <Error
+      Condition="'@(_LocalOnlyFileMarkedForCopy)' != ''"
+      Code="KBOT0001"
+      Text="$(MSBuildProjectName) would copy local-only file(s) into its output/publish directory: @(_LocalOnlyFileMarkedForCopy). The publish output becomes the container image, so secrets and state must never be copied there. Inspect with `dotnet msbuild $(MSBuildProjectFile) -getItem:Content`, and keep the file out of the build with the DefaultItemExcludes property in Directory.Build.props rather than shipping it."
+    />
+  </Target>
 </Project>

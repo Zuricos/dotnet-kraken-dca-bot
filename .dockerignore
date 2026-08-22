@@ -1,0 +1,67 @@
+# This file MUST live at the repository root: both images are built with `context: .` (the repo
+# root) and `dockerfile: docker/Kbot.*.Dockerfile`, and BuildKit only consults
+# `<dockerfile-path>.dockerignore` or `<context>/.dockerignore`. A copy under docker/ is never
+# read, which is why every entry below used to have no effect at all.
+#
+# The Dockerfiles only need: nuget.config, Directory.Build.props, Directory.Packages.props and
+# src/. Everything else is excluded -- the publish output becomes the image, so anything that
+# reaches the build context is a potential leak.
+
+# --- Version control, CI and editor state -------------------------------------
+**/.classpath
+**/.dockerignore
+**/*.env
+**/.git
+.github
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+
+# --- Build output and test artefacts ------------------------------------------
+**/bin
+**/obj
+**/TestResults
+**/*.trx
+test
+
+# --- Packaging / tooling not used by the image builds -------------------------
+# `docker` covers this repo's Dockerfiles, example-compose.yaml and stack.env in one line; the
+# `Dockerfile*` / `compose*` globs below only match those exact prefixes, which nothing here uses.
+# The Dockerfile passed with `-f` is read by the client, not through the build context, so
+# excluding the directory is safe.
+docker
+**/charts
+**/docker-compose*
+**/compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+
+# --- Documentation and assets -------------------------------------------------
+docs
+*.md
+LICENSE
+btc_adress_qr.png
+
+# --- Local secrets, state and logs --------------------------------------------
+# Secrets reach the containers through the mounted docker secret files
+# (/run/secrets/dca-secrets, /run/secrets/mail-secrets) and environment variables, and state
+# lives in the mounted state/ volume -- never through the build context. The `*secrets.json` /
+# `*state.json` shapes mirror .gitignore's own. `secrets*template.json` replaces
+# `secrets-template.json`, which matched the two `secrets-template.json` files but not the
+# `secrets.template.json` spelling used by the DCA and test projects; the wildcard covers both,
+# so P5-04's L-16 rename cannot un-ignore anything.
+**/secrets.dev.yaml
+**/values.dev.yaml
+**/appsettings.Development.json
+**/*secrets.json
+**/secrets*template.json
+**/*state.json
+**/state
+**/logs

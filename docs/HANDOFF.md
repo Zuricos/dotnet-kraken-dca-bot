@@ -14,14 +14,14 @@ then follow §8 to produce the next handoff.
 |---|---|
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
-| What has been fixed | **6 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02), C-4 (P1-03), C-5 (P1-04) and H-11 (P1-08) are merged. The rest are open. |
-| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`), P1-02 (#43), P1-03 (#45), P1-04 (#46) and P1-08 (#44) have landed there; everything else is still open. |
+| What has been fixed | **7 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02), C-4 (P1-03), C-5 (P1-04), H-11 (P1-08) and H-4 (P1-06) are merged. The rest are open. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`), P1-02 (#43), P1-03 (#45), P1-04 (#46), P1-08 (#44) and P1-06 (#48) have landed there; everything else is still open. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
 all in Wave 0 and they were the point of this handoff. **C-1 … C-5 are all closed, so Milestone M1
-("safe to run") is reached.** What is left in Wave 0 is the non-critical work: P1-06, P1-07, P1-09
-and P2-02.
+("safe to run") is reached.** What is left in Wave 0 is the non-critical work: P1-07, P1-09 and
+P2-02.
 
 ---
 
@@ -69,7 +69,7 @@ If you ever see a plan or an older doc say "base on `main`", it is stale — thi
 | ~~2~~ | ~~[P1-02](plans/p1-02-c2-c3-guard-worker-sentinels.md)~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | **C-2, C-3** | S |
 | ~~3~~ | ~~[P1-03](plans/p1-03-c4-topup-day-clamp-and-state-order.md)~~ ✅ merged | `fix/p1-c4-topup-day-clamp-and-state-order` | **C-4** | S |
 | ~~4~~ | ~~[P1-04](plans/p1-04-c5-worker-loop-resilience.md)~~ ✅ merged | `fix/p1-c5-worker-loop-resilience` | **C-5** | S |
-| 5 | [P1-06](plans/p1-06-h4-dockerignore-and-secret-copy.md) | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 | S |
+| ~~5~~ | ~~[P1-06](plans/p1-06-h4-dockerignore-and-secret-copy.md)~~ ✅ merged | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 | S |
 | 6 | [P1-07](plans/p1-07-h10-tighten-options-validators.md) | `fix/p1-h10-tighten-options-validators` | H-10 | S |
 | ~~7~~ | ~~[P1-08](plans/p1-08-h11-database-credentials-exposure.md)~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 | S |
 | 8 | [P1-09](plans/p1-09-m16-redact-secrets-in-logs.md) | `fix/p1-m16-redact-secrets-in-logs` | M-16 | XS |
@@ -241,7 +241,7 @@ Rules:
 </details>
 
 <details>
-<summary><b>P1-06 · Fix the inert .dockerignore and the secrets.json copy (H-4)</b></summary>
+<summary><b>P1-06 · Fix the inert .dockerignore and the secrets.json copy (H-4) — ✅ merged as #48, nothing to do</b></summary>
 
 ```
 Work in the repo dotnet-kraken-dca-bot.
@@ -450,7 +450,7 @@ Every PR updates its own row, on its own branch, before it is opened — see
 | P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | ✅ resolved | #43 | via #43 |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | ✅ resolved | #45 | via #45 |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | ✅ resolved | #46 | via #46 |
-| P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | — | | |
+| P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | ✅ resolved | #48 | via #48 |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | — | | |
 | P1-08 | `fix/p1-h11-database-credentials-exposure` | ✅ resolved | #44 | via #44 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | — | | |
