@@ -28,8 +28,11 @@ services:
     container_name: kraken-database
     env_file:
       - stack.env
-    ports:
-      - "5432:5432"
+    # No host port is published: mail-service reaches the database by service name over the
+    # compose network. Publishing 5432 would expose the database to every host on your LAN.
+    # For local debugging only, bind it to loopback and nothing else:
+    # ports:
+    #   - "127.0.0.1:5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     restart: always

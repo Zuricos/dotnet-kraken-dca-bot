@@ -8,7 +8,7 @@
 | **Effort** | M (~5 h) |
 | **Depends on** | ✅ **P1-03** — merged (#45); **P1-07** (validator tightening) is the one still open |
 | **Blocks** | — (but **P2-05** consumes it; coordinate whichever lands second) |
-| **Conflict surface** | `src/Kbot.Common/Options/**`, `src/Kbot.DcaService/Options/**`, `src/Kbot.MailService/Options/MailOptions.cs`, both `ServiceCollectionExtension.cs`, `docker/stack.env` (also P1-08, P4-10) |
+| **Conflict surface** | `src/Kbot.Common/Options/**`, `src/Kbot.DcaService/Options/**`, `src/Kbot.MailService/Options/MailOptions.cs`, both `ServiceCollectionExtension.cs`, `docker/stack.env` (also P4-10; P1-08 is merged — it removed `ConnectionStrings__Kraken` from that file and left `POSTGRES_PASSWORD` as a placeholder) |
 
 ## Problem
 

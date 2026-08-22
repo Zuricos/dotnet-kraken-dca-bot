@@ -435,6 +435,13 @@ There is no `WaitOptions` section in `appsettings.json`, so an operator who forg
 
 ### H-11 · Committed database password plus Postgres published on all host interfaces
 
+> ✅ **Resolved** by [P1-08](docs/plans/p1-08-h11-database-credentials-exposure.md), merged as PR #44.
+> The `ports` block is gone (a loopback-only mapping is left commented out), `stack.env` carries a
+> `<CHANGE_ME>` placeholder for `POSTGRES_PASSWORD` and no connection string at all, and
+> `appsettings.json` no longer ships one — the mail service now fails fast with a message naming
+> `ConnectionStrings:Kraken`. Operators who already deployed the default must rotate it; removing it
+> from the repository does not change an existing database.
+
 **Files:** [stack.env:19,23](docker/stack.env#L19) · [example-compose.yaml:31-32](docker/example-compose.yaml#L31-L32) · [appsettings.json:3](src/Kbot.MailService/appsettings.json#L3)
 
 `POSTGRES_PASSWORD="NotYourK3yNotYourCoin$"` is committed in `stack.env` **and baked into `appsettings.json`**, therefore into the published image. The compose file publishes `ports: - "5432:5432"`, binding Postgres to all host interfaces.

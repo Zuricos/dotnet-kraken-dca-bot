@@ -150,7 +150,7 @@ merge order matters (see the note below) but their *development* does not.
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | C-5 |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | H-10 |
-| P1-08 | `fix/p1-h11-database-credentials-exposure` | H-11 |
+| ~~P1-08~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | M-16 |
 | P2-02 | `fix/p2-h1-invariant-culture` | H-1 |
 
@@ -174,10 +174,10 @@ merge order matters (see the note below) but their *development* does not.
 | P4-02 | — (soft: P3-01) | `fix/p4-h7-holiday-cache-resilience` |
 | P4-03 | — (soft: P3-01) | `refactor/p4-h8-httpclient-lifetimes-resilience` |
 | P4-05 | — | `fix/p4-i4-nonce-monotonicity` |
-| P4-06 | P1-08 | `fix/p4-m17-m21-startup-and-healthchecks` |
+| P4-06 | ✅ P1-08 *(merged — ready now)* | `fix/p4-m17-m21-startup-and-healthchecks` |
 | P4-07 | — (soft: P3-01) | `refactor/p4-m22-mail-transport-mailkit` |
 | P4-10 | — (soft: P2-02, P2-03) | `fix/p4-parsing-and-config-robustness` |
-| P5-01 | — (best after P1-08, P2-08, P4-09) | `docs/p5-readme-accuracy` |
+| P5-01 | — (best after ✅ P1-08, P2-08, P4-09) | `docs/p5-readme-accuracy` |
 
 > **Phase 4 is unusually independent.** P4-01/02/03/05/06/07 need nothing from Phase 2 or 3 — they are
 > only *smaller* after P3-01. If you have spare parallel capacity while Phase 2 is in flight, this is
@@ -236,7 +236,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | H-8 | P4-03 | M-13 | P4-08 |
 | H-9 | P2-06 | M-14 | P4-10 |
 | H-10 | P1-07 | M-15 | P4-10 |
-| H-11 | P1-08 | M-16 | P1-09 |
+| H-11 ✅ | P1-08 *(merged)* | M-16 | P1-09 |
 | H-12 | P1-10 | M-17 | P4-06 |
 | I-1 | P2-01 | M-18 | P2-09 |
 | I-2 | P2-04 | M-19 | P2-09 |
@@ -273,8 +273,8 @@ order up front.
 | `src/Kbot.MailService/Utility/OrderService.cs` | P2-01, P2-04, P2-06, P4-08 | P2-01 → P2-06 → P2-04 → P4-08 |
 | `src/Kbot.MailService/Migrations/**` | P2-03, P2-04 | P2-03 → P2-04 (**never in parallel** — two pending migrations conflict) |
 | `.github/workflows/**` | P1-05, P2-09, P5-02 | P1-05 → P2-09 → P5-02 |
-| `docker/example-compose.yaml` | P1-08, P4-06, P5-02 | P1-08 → P4-06 → P5-02 |
-| `docker/stack.env` | P1-08, P2-08, P4-10 | P1-08 → P2-08 → P4-10 |
+| `docker/example-compose.yaml` | P1-08 ✅, P4-06, P5-02 | P1-08 *(merged)* → P4-06 → P5-02 |
+| `docker/stack.env` | P1-08 ✅, P2-08, P4-10 | P1-08 *(merged)* → P2-08 → P4-10 |
 | `README.md` | P4-05, P5-01, P5-02, P5-03 | P5-01 → P5-02 → P5-03 (P4-05 adds one section; merge whenever) |
 | Both `ServiceCollectionExtension.cs` | P1-07, P2-08, P3-01, P4-03, P5-04 | P1-07 → P2-08 → P3-01 → P4-03 → P5-04 |
 
