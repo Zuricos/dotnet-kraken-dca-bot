@@ -146,6 +146,11 @@ public class DcaWorker(
     if (isSuccess)
     {
       State = State with { LastInvestmentTime = DateTime.UtcNow };
+      // Durable before anything else can throw: the money is already spent, so a crash between here
+      // and the loop's Save() must not reload a pre-order LastInvestmentTime and buy again (C-4).
+      // The Save() in ExecuteAsync stays and is idempotent. P4-01 makes the write atomic; P4-09
+      // closes the remaining send-to-persist crash window (M-6).
+      State.Save();
       State = computeService.ComputeTimeUntilNextTopUp(
         State,
         balanceOptions.Value.DefaultTopupDayOfMonth

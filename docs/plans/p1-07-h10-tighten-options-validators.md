@@ -43,8 +43,9 @@ There is no `WaitOptions` section in
    - `MinWaitTime <= MaxWaitTime` (keep)
    - a lower bound on `MinWaitTime` that respects Kraken's rate limits — recommend `>= 1s`, and log a
      warning below 5 s
-3. `BalanceOptionsValidator`: keep `ReserveFiat >= 0` (0 is legitimate), and align
-   `DefaultTopupDayOfMonth` with **P1-03** (1–28). If P1-03 is already merged, leave that rule alone.
+3. `BalanceOptionsValidator`: keep `ReserveFiat >= 0` (0 is legitimate). **P1-03 is merged**, so
+   `DefaultTopupDayOfMonth` is already validated as 1–28 and already has test coverage in
+   `TopUpDayClampTest.cs` — leave that rule and its test alone.
 4. `CultureOptionsValidator`: keep as is here — the `CultureInfo`/`CountyCode` validation belongs to
    **P4-10** (M-15).
 5. Add **every** section with safe defaults to `src/Kbot.DcaService/appsettings.json` so an omitted

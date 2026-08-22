@@ -6,7 +6,7 @@
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `test/p1-h12-deterministic-timecompute-tests` |
 | **Effort** | M (~4 h) |
-| **Depends on** | **P1-03** (same file, and the tests must assert the clamped behaviour). Soft dependency on **P1-02** (divisor guard tests live here too). |
+| **Depends on** | ✅ **P1-03** — merged (#45), so this is **ready**. The clamp is in and `TopUpDayClampTest.cs` already covers it hermetically for 12 months × days {1, 28, 29, 30, 31}; this plan makes the *existing* `TimeComputeTest` deterministic and can fold that file in. Soft dependency on **P1-02** (divisor guard tests live here too). |
 | **Blocks** | P3-01 (extends the same `TimeProvider` seam), P3-03 |
 | **Conflict surface** | `src/Kbot.DcaService/Utility/TimeComputeService.cs` (also P1-02, P1-03), `test/Kbot.DcaService.Test/TimeComputeTest.cs` |
 

@@ -6,7 +6,7 @@
 | **Phase** | 2 — Contract & numeric correctness |
 | **Branch** | `refactor/p2-i5-shared-trading-options` |
 | **Effort** | M (~5 h) |
-| **Depends on** | **P1-03** (day-of-month clamp/validator), **P1-07** (validator tightening) |
+| **Depends on** | ✅ **P1-03** — merged (#45); **P1-07** (validator tightening) is the one still open |
 | **Blocks** | — (but **P2-05** consumes it; coordinate whichever lands second) |
 | **Conflict surface** | `src/Kbot.Common/Options/**`, `src/Kbot.DcaService/Options/**`, `src/Kbot.MailService/Options/MailOptions.cs`, both `ServiceCollectionExtension.cs`, `docker/stack.env` (also P1-08, P4-10) |
 
@@ -18,11 +18,13 @@ The same values are configured twice under different names, with no cross-check:
 |---|---|---|
 | Trading pair | `OrderOptions__CryptoPair="XBTCHF"` | `MailOptions__CryptoPair="XBTCHF"` |
 | Fiat currency | `CultureOptions__Fiat="CHF"` | `MailOptions__Fiat="CHF"` |
-| Day-of-month | `BalanceOptions__DefaultTopupDayOfMonth` — validated **1–31** ❌ | `MailOptions__DayOfMonth` — validated **1–28** ✅ |
+| Day-of-month | `BalanceOptions__DefaultTopupDayOfMonth` — validated **1–28** since P1-03 ✅ | `MailOptions__DayOfMonth` — validated **1–28** ✅ |
 
 Change one and the reports silently disagree with the trades. The day-of-month divergence is the live
 bug behind **C-4**: the two validators encode different beliefs about the same concept and the more
-permissive one crashes.
+permissive one crashes. P1-03 has since put both on 1–28 and made the computation clamp, so the
+divergence is no longer a crash — but it is still two options for one concept, which is what this
+plan removes.
 
 Also: `CultureOptions` lives in `Kbot.Common` and `HolidayService` (also Common) depends on it — but
 only `Kbot.DcaService` registers either, so wiring `HolidayService` into MailService would fail at

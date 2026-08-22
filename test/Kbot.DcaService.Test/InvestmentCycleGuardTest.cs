@@ -23,6 +23,16 @@ public class InvestmentCycleGuardTest
 {
   private static readonly TimeSpan MaxWaitTime = TimeSpan.FromHours(1);
 
+  /// <summary>
+  /// A successful cycle persists the state before it does any further bookkeeping (C-4), and
+  /// <see cref="DcaStateHandler"/> writes to a path relative to the working directory. The
+  /// dedicated ordering test in <see cref="InvestmentCyclePersistOrderTest"/> uses a temporary one;
+  /// here the test output directory is enough.
+  /// </summary>
+  [ClassInitialize]
+  public static void EnsureStateDirectory(TestContext testContext) =>
+    Directory.CreateDirectory("state");
+
   private const string BalanceOfThousandFrancs =
     """{"error":[],"result":{"CHF":"1000","XXBT":"0"}}""";
   private const string BalanceWithoutFrancs = """{"error":[],"result":{"ZUSD":"1000"}}""";

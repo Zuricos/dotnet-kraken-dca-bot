@@ -2,6 +2,7 @@
 
 |  |  |
 |---|---|
+| **Status** | ✅ **Resolved** — merged into `review-and-fix` via PR #45 |
 | **Findings** | C-4 |
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `fix/p1-c4-topup-day-clamp-and-state-order` |
@@ -92,3 +93,63 @@ dotnet build Kbot.sln -warnaserror
 dotnet test Kbot.sln --filter "TestCategory!=LiveExchange&TestCategory!=LiveApi"
 dotnet csharpier check .
 ```
+
+---
+
+## Resolution
+
+Merged into `review-and-fix` from `fix/p1-c4-topup-day-clamp-and-state-order` as PR #45. **C-4 is
+closed**: no `topUpDayOfMonth` can throw a date out of existence any more, and a sent order is on
+disk before anything that could throw runs, so a crash-restart can no longer replay a buy.
+
+What landed:
+
+- [TimeComputeService.cs](../../src/Kbot.DcaService/Utility/TimeComputeService.cs) — `AtDayOfMonth`
+  clamps the day to `DateTime.DaysInMonth(year, month)` and stamps `DateTimeKind.Utc`; all three
+  date constructions go through it.
+- [TimeComputeService.cs](../../src/Kbot.DcaService/Utility/TimeComputeService.cs) — the rollover is
+  computed from the first of the month plus `AddMonths(1)`, so the hand-written December branch is
+  gone and the year boundary is no longer a special case.
+- [BalanceOptions.cs](../../src/Kbot.DcaService/Options/BalanceOptions.cs) — the validator accepts
+  **1–28** and the failure message says why 29–31 is refused. The clamp stays as defence in depth
+  for values that reach the service from a persisted state file or a config source that does not run
+  the validator. This also puts `BalanceOptions` and `MailOptions` on the same range, which is what
+  P2-08 needs.
+- [DcaWorker.cs](../../src/Kbot.DcaService/DcaWorker.cs) — `InvestmentCycle` calls `State.Save()`
+  immediately after a successful order, before `ComputeTimeUntilNextTopUp`. The `Save()` in
+  `ExecuteAsync` stays and is idempotent.
+
+One knock-on the scope did not spell out: the healthy-cycle test from P1-02 now goes through
+`DcaStateHandler.Save`, which writes to a path relative to the working directory, so
+[InvestmentCycleGuardTest.cs](../../test/Kbot.DcaService.Test/InvestmentCycleGuardTest.cs) gained a
+`[ClassInitialize]` that creates the `state` directory in the test output directory.
+
+Tests:
+
+- [TopUpDayClampTest.cs](../../test/Kbot.DcaService.Test/TopUpDayClampTest.cs) — sweeps 12 months ×
+  days {1, 28, 29, 30, 31} over a non-leap and a leap year, from the first of the month and from its
+  last evening so both date-construction sites are hit, asserting no throw, `Kind == Utc`, never a
+  weekend and never a date in the past. It then pins the exact result for February (leap and
+  non-leap), April and December, the month rollover into a short month, and the December → January
+  rollover. Hermetic: the holiday cache is seeded empty and every case sits in a past year, so there
+  is no network call and no dependency on today's date. It also covers the validator — day 31 and
+  day 0 are rejected, day 28 still passes.
+- [InvestmentCyclePersistOrderTest.cs](../../test/Kbot.DcaService.Test/InvestmentCyclePersistOrderTest.cs)
+  — one cycle against a stubbed transport in a temporary working directory with the post-order
+  bookkeeping forced to throw: `state/state.json` must already carry the post-order
+  `LastInvestmentTime`. The counter-test asserts that a skipped cycle writes nothing.
+
+Verified: `dotnet build Kbot.sln -warnaserror` clean, 46 tests pass under the default filter,
+`csharpier check .` clean.
+
+Deliberately not done: `TimeProvider` injection and the still calendar-dependent tests in
+`TimeComputeTest` → **P1-10**. One shared day-of-month option across both services → **P2-08**.
+Atomic state writes → **P4-01**. The remaining send↔persist crash window (M-6) → **P4-09**.
+
+Noted while here, not fixed: `DcaStateHandler.Save` throws if the `state` directory is missing and
+its `catch` retries with `File.Delete` on the same missing path — production creates `/app/state` in
+the Dockerfile, but this is now on the path a successful order takes and looks like the cause of
+issue #23 (**P4-01** owns that file). `HolidayService.IsHoliday` throws on an empty holiday cache,
+i.e. when the startup fetch failed (**P4-02**).
+
+Follow-ups unblocked: **P1-10**; **P2-08** once P1-07 lands.

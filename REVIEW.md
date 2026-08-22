@@ -185,6 +185,12 @@ var balanceFiat = fiatBalance - ReserveFiat;
 
 ### C-4 · `DefaultTopupDayOfMonth` 29–31 throws *after* the order is sent but *before* state is saved → duplicate buys
 
+> ✅ **Resolved** by [P1-03](docs/plans/p1-03-c4-topup-day-clamp-and-state-order.md), merged as PR #45.
+> All three date constructions go through a helper that clamps the day to the month's length and
+> stamps `DateTimeKind.Utc`, the month rollover no longer special-cases December, the validator
+> accepts 1–28 with a message that says why, and `InvestmentCycle` persists the state immediately
+> after a successful order — before anything that could throw.
+
 **Files:** [TimeComputeService.cs:10,25,29](src/Kbot.DcaService/Utility/TimeComputeService.cs#L10) · [BalanceOptions.cs:16](src/Kbot.DcaService/Options/BalanceOptions.cs#L16) · [DcaWorker.cs:49,100-107](src/Kbot.DcaService/DcaWorker.cs#L100-L107)
 
 All three `new DateTime(...)` calls pass `topUpDayOfMonth` unvalidated against the target month's length; `new DateTime(2026, 4, 31)` and `new DateTime(2026, 2, 30)` both throw `ArgumentOutOfRangeException`. `BalanceOptionsValidator` accepts anything in **1–31**, so this is a legal configuration. (Note `MailOptionsValidator` correctly caps the same concept at 28 — the two services disagree.)

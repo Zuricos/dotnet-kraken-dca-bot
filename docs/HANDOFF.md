@@ -14,13 +14,13 @@ then follow §8 to produce the next handoff.
 |---|---|
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
-| What has been fixed | **3 of 64 findings.** C-1 (P1-01) and C-2 / C-3 (P1-02) are merged. The rest are open. |
+| What has been fixed | **4 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02) and C-4 (P1-03) are merged. The rest are open. |
 | Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`) and P1-02 (#43) have landed there; everything else is still open. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
-all in Wave 0 and they are the point of this handoff. C-1, C-2 and C-3 are closed; **C-4 and C-5
-(P1-03, P1-04) are what is left before the bot is safe.**
+all in Wave 0 and they are the point of this handoff. C-1, C-2, C-3 and C-4 are closed; **C-5
+(P1-04) is what is left before the bot is safe.**
 
 ---
 
@@ -66,7 +66,7 @@ If you ever see a plan or an older doc say "base on `main`", it is stale — thi
 |---|---|---|---|---|
 | ~~1~~ | ~~[P1-01](plans/p1-01-c1-gate-live-trading-tests.md)~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | **C-1** | S |
 | ~~2~~ | ~~[P1-02](plans/p1-02-c2-c3-guard-worker-sentinels.md)~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | **C-2, C-3** | S |
-| 3 | [P1-03](plans/p1-03-c4-topup-day-clamp-and-state-order.md) | `fix/p1-c4-topup-day-clamp-and-state-order` | **C-4** | S |
+| ~~3~~ | ~~[P1-03](plans/p1-03-c4-topup-day-clamp-and-state-order.md)~~ ✅ merged | `fix/p1-c4-topup-day-clamp-and-state-order` | **C-4** | S |
 | 4 | [P1-04](plans/p1-04-c5-worker-loop-resilience.md) | `fix/p1-c5-worker-loop-resilience` | **C-5** | S |
 | 5 | [P1-06](plans/p1-06-h4-dockerignore-and-secret-copy.md) | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 | S |
 | 6 | [P1-07](plans/p1-07-h10-tighten-options-validators.md) | `fix/p1-h10-tighten-options-validators` | H-10 | S |
@@ -81,13 +81,13 @@ to have no prerequisites — take it only if capacity is left over.
 
 Development is parallel; **merging** has two ordering constraints, both from shared files:
 
-- `src/Kbot.DcaService/DcaWorker.cs` → merge **P1-02 → P1-03 → P1-04** (P1-02 is merged)
+- `src/Kbot.DcaService/DcaWorker.cs` → merge **P1-02 → P1-03 → P1-04** (P1-02 and P1-03 are merged)
 - `src/Kbot.DcaService/Utility/TimeComputeService.cs` → planned **P1-03 → P1-02**; P1-02 got there
-  first
+  first, and both are now merged
 
 The suggested merge order for the critical four was **P1-03 → P1-02 → P1-04**, but P1-02 merged
-first, so **P1-03 and P1-04 build on it** — it is already in `DcaWorker.cs` and
-`TimeComputeService.cs`, and branching from `review-and-fix` picks it up.
+first, so **P1-03 built on it** and **P1-04 rebases onto both** — they are already in `DcaWorker.cs`
+and `TimeComputeService.cs`, and branching from `review-and-fix` picks them up.
 P1-01 was independent and is merged, which is what makes the suite safe for everyone else.
 Each conflict is a small local edit; rebasing is a two-minute job, not a redesign.
 
@@ -166,7 +166,7 @@ Rules:
 </details>
 
 <details>
-<summary><b>P1-03 · Clamp the top-up day, persist state before bookkeeping (C-4)</b></summary>
+<summary><b>P1-03 · Clamp the top-up day, persist state before bookkeeping (C-4) — ✅ merged as #45, nothing to do</b></summary>
 
 ```
 Work in the repo dotnet-kraken-dca-bot.
@@ -288,9 +288,9 @@ also no WaitOptions section in appsettings.json, so an omitted env var is silent
 tightening the validators, adding safe defaults, and unit-testing every rule (there is zero
 validator coverage today, which is how this survived).
 
-Conflict note: P1-03 also edits BalanceOptions.cs — if it is already merged, leave its
-DefaultTopupDayOfMonth rule alone. P1-02 already added the Enum.IsDefined check on
-OrderOptions.Type; do not add a second one.
+Conflict note: P1-03 is merged, so BalanceOptions.cs already validates DefaultTopupDayOfMonth as
+1-28 and TopUpDayClampTest.cs already covers that rule — leave both alone. P1-02 already added the
+Enum.IsDefined check on OrderOptions.Type; do not add a second one.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
@@ -446,7 +446,7 @@ Every PR updates its own row, on its own branch, before it is opened — see
 |---|---|---|---|---|
 | P1-01 | `test/p1-c1-gate-live-trading-tests` | ✅ resolved | #42 | `58c2262` (2026-08-22) |
 | P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | ✅ resolved | #43 | via #43 |
-| P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | — | | |
+| P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | ✅ resolved | #45 | via #45 |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | — | | |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | — | | |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | — | | |
@@ -455,7 +455,7 @@ Every PR updates its own row, on its own branch, before it is opened — see
 | P2-02 | `fix/p2-h1-invariant-culture` | — | | |
 
 **Milestone M1 ("safe to run") is reached when P1-01, P1-02, P1-03 and P1-04 are all merged.**
-P1-01 and P1-02 are merged; **P1-03 and P1-04 are the two still to be written.**
+P1-01, P1-02 and P1-03 are merged; **P1-04 is the last one.**
 
 ---
 
@@ -466,9 +466,9 @@ Each merge unlocks specific plans. From [ROADMAP.md](ROADMAP.md) §4:
 | When this merges | These become ready |
 |---|---|
 | ✅ P1-01 *(merged)* | **P1-05** (`ci/p1-h3-build-test-lint-pipeline`) — **now ready**; CI could not be wired up before the tests were safe |
-| P1-03 | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) |
+| ✅ P1-03 *(merged)* | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) — **now ready**; the clamp it has to assert is in |
 | ✅ P1-02 *(merged)* **and** P1-04 | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review; now waiting on P1-04 alone |
-| P1-03 **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) |
+| ✅ P1-03 *(merged)* **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) — now waiting on P1-07 alone |
 | P1-08 | **P4-06** (`fix/p4-m17-m21-startup-and-healthchecks`) |
 | P1-05 | **P2-09** (`ci/p2-workflow-hardening`) |
 | P2-02 | **P2-03** (`refactor/p2-h2-decimal-money`) |
