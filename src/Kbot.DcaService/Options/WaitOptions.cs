@@ -31,6 +31,15 @@ public class WaitOptionsValidator(ILogger<WaitOptionsValidator> logger)
   /// </summary>
   public static readonly TimeSpan RecommendedMinimumPollInterval = TimeSpan.FromSeconds(5);
 
+  /// <summary>
+  /// The hard ceiling. <see cref="WaitOptions.MaxWaitTime"/> is what both the wait clamp and the
+  /// failure backoff cap to, and the capped value goes straight into <c>Task.Delay</c>, which throws
+  /// above <see cref="Timer.MaxSupportedTimeout"/> (~49.7 days) — from a call site P1-04's catch-all
+  /// does not cover, so the host would stop and Docker would crash-loop it. A week is already far
+  /// longer than any DCA schedule needs, and it leaves that limit unreachable.
+  /// </summary>
+  public static readonly TimeSpan MaximumWaitTime = TimeSpan.FromDays(7);
+
   public ValidateOptionsResult Validate(string? name, WaitOptions options)
   {
     List<string> vor = [];
@@ -47,6 +56,14 @@ public class WaitOptionsValidator(ILogger<WaitOptionsValidator> logger)
     if (options.MaxWaitTime <= TimeSpan.Zero)
     {
       vor.Add($"MaxWaitTime must be greater than 0 (was {options.MaxWaitTime})");
+    }
+    else if (options.MaxWaitTime > MaximumWaitTime)
+    {
+      vor.Add(
+        $"MaxWaitTime must be at most {MaximumWaitTime} (was {options.MaxWaitTime}); it is the "
+          + "ceiling of every Task.Delay the trading loop performs, and Task.Delay throws above "
+          + "~49.7 days, which would stop the host rather than pause the loop"
+      );
     }
     if (options.MinWaitTime > options.MaxWaitTime)
     {
