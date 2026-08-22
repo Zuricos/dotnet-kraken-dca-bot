@@ -32,8 +32,10 @@ the retry loop — 25 s of the suite's runtime spent failing silently.
    with captured real Kraken payloads as fixtures (commit them under `test/Fixtures/`). Include the
    awkward cases: market order with `descr.price = 0` (M-7), unknown status, `stop-loss` type (M-9),
    canonical vs alias pair keys (I-3).
-3. **Options validators** — every rule of all five validators (this is how H-10 survived). Coordinate
-   with **P1-07**, which adds the first ones.
+3. **Options validators** — every rule of all five validators (this is how H-10 survived). **P1-07 is
+   merged** (#47) and covers `OrderOptions`, `WaitOptions`, `BalanceOptions.ReserveFiat` and
+   `CultureOptions`; what is left here is `SecretsValidator`, `MailSecretsValidator` and
+   `MailOptionsValidator`.
 4. **State persistence** — `DcaStateHandler`/`JsonStateStore` load, save, missing directory, corrupt
    JSON, truncated JSON, unreadable file. Note the existing test deletes the wrong file
    (`state.json` vs `state/state.json`) — fix that. Use a per-test temp directory, never the CWD.

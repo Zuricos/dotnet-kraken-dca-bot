@@ -23,5 +23,13 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <!--
+      The service's own appsettings.json, so ShippedDefaultsTest can assert that the defaults it
+      ships are complete and valid instead of asserting against a copy that can drift. Linked under
+      a different name: this project already has an appsettings.json of its own in the output.
+    -->
+    <None Include="..\..\src\Kbot.DcaService\appsettings.json" Link="dca-appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
