@@ -26,7 +26,9 @@
 
 ### In scope
 1. Replace every SQLite reference with PostgreSQL, including the storage-provisioning instructions,
-   and document the `ConnectionStrings__Kraken` requirement (post-**P1-08**: no default password).
+   and document the `ConnectionStrings__Kraken` requirement (**P1-08** is merged: there is no default
+   password, and the mail service fails fast without the setting — the README already carries a
+   three-line note that this section should absorb).
 2. State the license correctly: **AGPL-3.0**, with a one-line summary of the network-copyleft
    obligation and a link to `LICENSE`.
 3. Document **UTC semantics** everywhere a time appears: `MailOptions__HourOfDay`,

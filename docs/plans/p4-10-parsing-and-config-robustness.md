@@ -8,7 +8,7 @@
 | **Effort** | S–M (~5 h) |
 | **Depends on** | Soft: **P2-02** (culture) and **P2-03** (types) touch the same DTOs — merge those first |
 | **Blocks** | — |
-| **Conflict surface** | `src/Kbot.Common/Conversion/OrderParser.cs`, `src/Kbot.Common/Dtos/**`, `src/Kbot.Common/Api/KrakenApi.cs` (also P4-05), `src/Kbot.Common/Options/CultureOptions.cs`, `docker/stack.env` (also P1-08, P2-08) |
+| **Conflict surface** | `src/Kbot.Common/Conversion/OrderParser.cs`, `src/Kbot.Common/Dtos/**`, `src/Kbot.Common/Api/KrakenApi.cs` (also P4-05), `src/Kbot.Common/Options/CultureOptions.cs`, `docker/stack.env` (also P2-08; P1-08 is merged — its comment block and the `POSTGRES_PASSWORD` placeholder are already there) |
 
 > Six independent robustness defects. One commit each.
 

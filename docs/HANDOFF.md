@@ -14,8 +14,8 @@ then follow §8 to produce the next handoff.
 |---|---|
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
-| What has been fixed | **4 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02) and C-4 (P1-03) are merged. The rest are open. |
-| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`) and P1-02 (#43) have landed there; everything else is still open. |
+| What has been fixed | **5 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02), C-4 (P1-03) and H-11 (P1-08) are merged. The rest are open. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`), P1-02 (#43) and P1-08 (#44) have landed there; everything else is still open. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
@@ -70,7 +70,7 @@ If you ever see a plan or an older doc say "base on `main`", it is stale — thi
 | 4 | [P1-04](plans/p1-04-c5-worker-loop-resilience.md) | `fix/p1-c5-worker-loop-resilience` | **C-5** | S |
 | 5 | [P1-06](plans/p1-06-h4-dockerignore-and-secret-copy.md) | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 | S |
 | 6 | [P1-07](plans/p1-07-h10-tighten-options-validators.md) | `fix/p1-h10-tighten-options-validators` | H-10 | S |
-| 7 | [P1-08](plans/p1-08-h11-database-credentials-exposure.md) | `fix/p1-h11-database-credentials-exposure` | H-11 | S |
+| ~~7~~ | ~~[P1-08](plans/p1-08-h11-database-credentials-exposure.md)~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 | S |
 | 8 | [P1-09](plans/p1-09-m16-redact-secrets-in-logs.md) | `fix/p1-m16-redact-secrets-in-logs` | M-16 | XS |
 | 9 | [P2-02](plans/p2-02-h1-invariant-culture.md) | `fix/p2-h1-invariant-culture` | H-1 | M |
 
@@ -308,7 +308,7 @@ Rules:
 </details>
 
 <details>
-<summary><b>P1-08 · Remove the committed DB password and published port (H-11)</b></summary>
+<summary><b>P1-08 · Remove the committed DB password and published port (H-11) — ✅ merged as #44, nothing to do</b></summary>
 
 ```
 Work in the repo dotnet-kraken-dca-bot.
@@ -450,7 +450,7 @@ Every PR updates its own row, on its own branch, before it is opened — see
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | — | | |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | — | | |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | — | | |
-| P1-08 | `fix/p1-h11-database-credentials-exposure` | — | | |
+| P1-08 | `fix/p1-h11-database-credentials-exposure` | ✅ resolved | #44 | via #44 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | — | | |
 | P2-02 | `fix/p2-h1-invariant-culture` | — | | |
 
@@ -469,7 +469,7 @@ Each merge unlocks specific plans. From [ROADMAP.md](ROADMAP.md) §4:
 | ✅ P1-03 *(merged)* | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) — **now ready**; the clamp it has to assert is in |
 | ✅ P1-02 *(merged)* **and** P1-04 | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review; now waiting on P1-04 alone |
 | ✅ P1-03 *(merged)* **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) — now waiting on P1-07 alone |
-| P1-08 | **P4-06** (`fix/p4-m17-m21-startup-and-healthchecks`) |
+| ✅ P1-08 *(merged)* | **P4-06** (`fix/p4-m17-m21-startup-and-healthchecks`) — **now ready**; the compose file no longer carries the port mapping or the password |
 | P1-05 | **P2-09** (`ci/p2-workflow-hardening`) |
 | P2-02 | **P2-03** (`refactor/p2-h2-decimal-money`) |
 

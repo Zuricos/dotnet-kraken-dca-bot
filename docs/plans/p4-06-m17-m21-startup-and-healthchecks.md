@@ -6,9 +6,9 @@
 | **Phase** | 4 — Operational hardening |
 | **Branch** | `fix/p4-m17-m21-startup-and-healthchecks` |
 | **Effort** | M (~5 h) |
-| **Depends on** | **P1-08** (same compose file — merge that first), soft **P1-04** |
+| **Depends on** | ✅ **P1-08** — merged as PR #44, so this is **ready now**; soft **P1-04** |
 | **Blocks** | `FUTURE_FEATURES.md` **F-1** (self-monitoring builds directly on this) |
-| **Conflict surface** | `docker/example-compose.yaml` (also P1-08), both Dockerfiles, `src/Kbot.MailService/Database/MigrationService.cs`, `src/Kbot.MailService/Program.cs` |
+| **Conflict surface** | `docker/example-compose.yaml` (P1-08 is merged: the `ports` block is already gone and `POSTGRES_PASSWORD` is already a placeholder — do not re-add either), both Dockerfiles, `src/Kbot.MailService/Database/MigrationService.cs`, `src/Kbot.MailService/Program.cs` |
 
 ## Problem
 
@@ -61,7 +61,7 @@ and stops trading indefinitely — the project's core failure mode is *silence*.
 
 ### Out of scope
 - Prometheus metrics and the dead-man's-switch alert mail → `FUTURE_FEATURES.md` **F-1**.
-- Removing the published Postgres port and the committed password → **P1-08**.
+- Removing the published Postgres port and the committed password → **P1-08** *(done — merged as #44)*.
 - Cancellation/shutdown behaviour → **P4-04**.
 
 ## Acceptance criteria
