@@ -18,9 +18,20 @@ public static class ServiceCollectionExtension
   {
     services.SetupOptions(configuration);
 
+    var connectionString = configuration.GetConnectionString("Kraken");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+      throw new InvalidOperationException(
+        "The database connection string 'ConnectionStrings:Kraken' is not configured. "
+          + "Set it in the mail-service docker secret file (mounted at /run/secrets/mail-secrets, "
+          + "see src/docker.mail.secrets-template.json) or via the ConnectionStrings__Kraken "
+          + "environment variable. It is deliberately not shipped with the image."
+      );
+    }
+
     services.AddDbContextFactory<KrakenDbContext>(options =>
     {
-      options.UseNpgsql(connectionString: configuration.GetConnectionString("Kraken"));
+      options.UseNpgsql(connectionString: connectionString);
     });
 
     services.AddTransient<OrderService>();
