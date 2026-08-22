@@ -5,9 +5,19 @@ namespace Kbot.DcaService.Utility;
 
 public class TimeComputeService(ILogger<TimeComputeService> logger, HolidayService holidayService)
 {
+  /// <summary>
+  /// The top-up day as an instant in the given month, clamped to that month's length: day 31 in
+  /// April is the 30th and day 29-31 in a non-leap February is the 28th. Plain
+  /// <c>new DateTime(2026, 4, 31)</c> throws, and the throw used to land between a sent order and
+  /// the state write (C-4). <see cref="DateTimeKind.Utc"/> because every comparison here is against
+  /// <see cref="DateTime.UtcNow"/>.
+  /// </summary>
+  private static DateTime AtDayOfMonth(int year, int month, int day) =>
+    new(year, month, Math.Min(day, DateTime.DaysInMonth(year, month)), 0, 0, 0, DateTimeKind.Utc);
+
   public DateTime ComputeNextTopUpTime(DateTime utcNow, int topUpDayOfMonth)
   {
-    var nextTopUpTime = new DateTime(utcNow.Year, utcNow.Month, topUpDayOfMonth, 0, 0, 0);
+    var nextTopUpTime = AtDayOfMonth(utcNow.Year, utcNow.Month, topUpDayOfMonth);
 
     while (
       nextTopUpTime.DayOfWeek == DayOfWeek.Saturday
@@ -20,14 +30,18 @@ public class TimeComputeService(ILogger<TimeComputeService> logger, HolidayServi
 
     if (utcNow > nextTopUpTime)
     {
-      if (utcNow.Month == 12)
-      {
-        nextTopUpTime = new DateTime(utcNow.Year + 1, 1, topUpDayOfMonth);
-      }
-      else
-      {
-        nextTopUpTime = new DateTime(utcNow.Year, utcNow.Month + 1, topUpDayOfMonth);
-      }
+      // Rolling over through the first of the month keeps December from needing its own branch and
+      // keeps the clamp: AddMonths on the 1st can never overflow into the month after next.
+      var firstOfNextMonth = new DateTime(
+        utcNow.Year,
+        utcNow.Month,
+        1,
+        0,
+        0,
+        0,
+        DateTimeKind.Utc
+      ).AddMonths(1);
+      nextTopUpTime = AtDayOfMonth(firstOfNextMonth.Year, firstOfNextMonth.Month, topUpDayOfMonth);
     }
 
     while (
