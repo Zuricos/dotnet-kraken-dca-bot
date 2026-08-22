@@ -63,6 +63,42 @@ public class OptionsValidatorTest
     AssertWaitFails(SaneWait with { MaxWaitTime = TimeSpan.FromSeconds(-1) }, "MaxWaitTime");
   }
 
+  /// <summary>
+  /// MaxWaitTime caps every Task.Delay the loop performs, and Task.Delay throws above
+  /// Timer.MaxSupportedTimeout (~49.7 days) from a call site P1-04's catch-all does not cover: the
+  /// host would stop and Docker would crash-loop it. One typo — 100 days for 100 minutes — is
+  /// enough, so the ceiling is validated rather than discovered at runtime.
+  /// </summary>
+  [TestMethod]
+  public void WaitOptions_RejectsAMaxWaitTimeThatTaskDelayCannotHonour()
+  {
+    AssertWaitFails(SaneWait with { MaxWaitTime = TimeSpan.FromDays(100) }, "MaxWaitTime");
+    AssertWaitFails(SaneWait with { MaxWaitTime = TimeSpan.MaxValue }, "MaxWaitTime");
+
+    Assert.IsTrue(
+      Validate(SaneWait with { MaxWaitTime = TimeSpan.FromDays(7) }).Succeeded,
+      "A week is the documented ceiling, so it must be accepted."
+    );
+  }
+
+  /// <summary>
+  /// The bound above exists because of this: everything the validator lets through must be a delay
+  /// the framework can actually wait for.
+  /// </summary>
+  [TestMethod]
+  public async Task WaitOptions_TheAcceptedCeilingIsADelayTaskDelayAccepts()
+  {
+    using var cts = new CancellationTokenSource();
+    await cts.CancelAsync();
+
+    await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
+      Task.Delay(WaitOptionsValidator.MaximumWaitTime, cts.Token)
+    );
+    Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+      _ = Task.Delay(TimeSpan.FromDays(100), cts.Token)
+    );
+  }
+
   [TestMethod]
   public void WaitOptions_RejectsAnInvertedRange()
   {
@@ -147,6 +183,31 @@ public class OptionsValidatorTest
     Assert.IsTrue(Validate(SaneOrder with { AskMultiplier = 1.5 }).Succeeded);
   }
 
+  /// <summary>
+  /// A multiplier below 1 is a limit buy under the market. <c>SendOrder</c> sets no expiry and never
+  /// checks for a fill, so the worker persists <c>LastInvestmentTime</c> on Kraken's acceptance of a
+  /// *resting* order: the schedule advances, the fiat stays locked, and DCA stops silently. It stays
+  /// legal — the test project uses 0.5 on purpose — so it is warned about, not refused.
+  /// </summary>
+  [TestMethod]
+  public void OrderOptions_WarnsWithoutFailingBelowTheMarketAsk()
+  {
+    var logger = new CapturingLogger<OrderOptionsValidator>();
+    var validator = new OrderOptionsValidator(logger);
+
+    Assert.IsTrue(validator.Validate(null, SaneOrder with { AskMultiplier = 0.9 }).Succeeded);
+    Assert.AreEqual(1, logger.Warnings.Count, "0.9 places the limit price below the ask.");
+    StringAssert.Contains(logger.Warnings[0], "AskMultiplier");
+
+    logger.Warnings.Clear();
+    Assert.IsTrue(validator.Validate(null, SaneOrder).Succeeded);
+    Assert.AreEqual(
+      0,
+      logger.Warnings.Count,
+      "1.00001 crosses the spread, which is the point of the multiplier: nothing to say."
+    );
+  }
+
   [TestMethod]
   public void OrderOptions_RejectsAFeeOutsideZeroToOneHundredPercent()
   {
@@ -193,6 +254,29 @@ public class OptionsValidatorTest
     );
   }
 
+  /// <summary>
+  /// Both length bounds, at the boundary, against Kraken's live <c>AssetPairs</c> list: the shortest
+  /// altnames it trades are four characters and the longest thirteen. The first version of this rule
+  /// used <c>{5,12}</c> and would have refused to start for 17 real pairs — the cost of an untested
+  /// bound, which is why both edges are pinned here.
+  /// </summary>
+  [TestMethod]
+  public void OrderOptions_AcceptsTheShortestAndLongestPairsKrakenActuallyTrades()
+  {
+    Assert.IsTrue(
+      Validate(SaneOrder with { CryptoPair = "SUSD" }).Succeeded,
+      "Four characters: Kraken's single-letter tickers quoted in USD/EUR."
+    );
+    Assert.IsTrue(
+      Validate(SaneOrder with { CryptoPair = "CHILLHOUSEEUR" }).Succeeded,
+      "Thirteen characters: the longest altname currently listed."
+    );
+    Assert.IsTrue(Validate(SaneOrder with { CryptoPair = new string('X', 16) }).Succeeded);
+
+    AssertOrderFails(SaneOrder with { CryptoPair = "USD" }, "CryptoPair");
+    AssertOrderFails(SaneOrder with { CryptoPair = new string('X', 17) }, "CryptoPair");
+  }
+
   // ------------------------------------------------------------- BalanceOptions
 
   [TestMethod]
@@ -218,7 +302,7 @@ public class OptionsValidatorTest
     new WaitOptionsValidator(NullLogger<WaitOptionsValidator>.Instance).Validate(null, options);
 
   private static ValidateOptionsResult Validate(OrderOptions options) =>
-    new OrderOptionsValidator().Validate(null, options);
+    new OrderOptionsValidator(NullLogger<OrderOptionsValidator>.Instance).Validate(null, options);
 
   private static void AssertWaitFails(WaitOptions options, string expectedOptionName) =>
     AssertFails(Validate(options), expectedOptionName, options.ToString());
