@@ -220,6 +220,14 @@ Restrict `DefaultTopupDayOfMonth` to 1–28 in the validator unless clamping is 
 
 ### C-5 · Neither worker loop has any exception handling
 
+> ✅ **Resolved** by [P1-04](docs/plans/p1-04-c5-worker-loop-resilience.md), merged as PR #46. Both
+> `ExecuteAsync` loops now guard their body, log the caught exception with its stack trace and pace
+> the retry with a capped exponential backoff instead of letting the throw stop the host; the DCA
+> startup path runs inside that same guard, cancellation exits without an error, and the restart
+> notification mail is rate-limited to one an hour so a restart loop cannot flood the inbox. The
+> individual throws listed below are still owned by their own plans — this only guarantees the loops
+> survive them.
+
 **Files:** [DcaWorker.cs:45-58](src/Kbot.DcaService/DcaWorker.cs#L45-L58) · [DailyReporter.cs:17,19](src/Kbot.MailService/DailyReporter.cs#L17)
 
 Neither `ExecuteAsync`'s `while` body nor `InvestmentCycle` has a `try`/`catch`. Every throw identified in this review terminates the host:

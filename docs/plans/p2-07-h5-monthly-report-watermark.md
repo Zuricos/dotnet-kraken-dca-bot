@@ -6,9 +6,9 @@
 | **Phase** | 2 — Contract & numeric correctness |
 | **Branch** | `fix/p2-h5-monthly-report-watermark` |
 | **Effort** | M (~5 h) |
-| **Depends on** | **P2-06** (a fetch failure must be detectable), **P1-04** (loop must survive the new throw path) |
+| **Depends on** | **P2-06** (a fetch failure must be detectable), ✅ **P1-04** *(merged — the loop survives the new throw path)* |
 | **Blocks** | — |
-| **Conflict surface** | `src/Kbot.MailService/MonthlyReporter.cs`, `src/Kbot.MailService/Utility/MailSenderService.cs`, `src/Kbot.MailService/DailyReporter.cs` (also P1-04) |
+| **Conflict surface** | `src/Kbot.MailService/MonthlyReporter.cs`, `src/Kbot.MailService/Utility/MailSenderService.cs`, `src/Kbot.MailService/DailyReporter.cs` (P1-04's guards are already merged there) |
 
 ## Problem
 

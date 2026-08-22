@@ -147,15 +147,15 @@ merge order matters (see the note below) but their *development* does not.
 | ~~P1-01~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | C-1 |
 | ~~P1-02~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | C-2, C-3 |
 | ~~P1-03~~ ✅ merged | `fix/p1-c4-topup-day-clamp-and-state-order` | C-4 |
-| P1-04 | `fix/p1-c5-worker-loop-resilience` | C-5 |
+| ~~P1-04~~ ✅ merged | `fix/p1-c5-worker-loop-resilience` | C-5 |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | H-10 |
 | ~~P1-08~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | M-16 |
 | P2-02 | `fix/p2-h1-invariant-culture` | H-1 |
 
-> **`DcaWorker.cs` merge order: P1-02 → P1-03 → P1-04.** P1-02 and P1-03 are merged, so P1-04 builds
-> on both. Each is a small, local edit; rebasing is a two-minute job.
+> **`DcaWorker.cs` merge order: P1-02 → P1-03 → P1-04.** All three are merged, in that order;
+> nothing in Wave 0 is still waiting on that file.
 >
 > **`TimeComputeService.cs`** is touched by P1-02 (divisor guard, merged) and P1-03 (date clamp,
 > merged) — nothing in Wave 0 is still waiting on that file.
@@ -166,7 +166,7 @@ merge order matters (see the note below) but their *development* does not.
 |---|---|---|
 | P1-05 | P1-01 | `ci/p1-h3-build-test-lint-pipeline` |
 | P1-10 | ✅ P1-03 *(merged — ready)* | `test/p1-h12-deterministic-timecompute-tests` |
-| P2-01 | ✅ P1-02 + P1-04 (waiting on P1-04) | `refactor/p2-i1-kraken-result-protocol` |
+| P2-01 | ✅ P1-02 + P1-04 (**both merged — ready**) | `refactor/p2-i1-kraken-result-protocol` |
 | P2-03 | P2-02 | `refactor/p2-h2-decimal-money` |
 | P2-08 | ✅ P1-03 + P1-07 (waiting on P1-07) | `refactor/p2-i5-shared-trading-options` |
 | P2-09 | P1-05 | `ci/p2-workflow-hardening` |
@@ -201,7 +201,7 @@ merge order matters (see the note below) but their *development* does not.
 
 | Plan | Unlocked by | Branch |
 |---|---|---|
-| P2-07 | P2-06 + P1-04 | `fix/p2-h5-monthly-report-watermark` |
+| P2-07 | P2-06 + ✅ P1-04 | `fix/p2-h5-monthly-report-watermark` |
 | P3-02 | P3-01 | `refactor/p3-dca-planner` |
 | P4-08 | P2-03 + P2-04 | `fix/p4-reporting-correctness` |
 | P3-03 (behaviour half) | P3-01, P3-02 | `test/p3-coverage-gaps-behaviour` |
@@ -225,7 +225,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | C-2 ✅ | P1-02 *(merged)* (→ P2-01) | M-2 | P4-09 |
 | C-3 ✅ | P1-02 *(merged)* (→ P2-01) | M-3 | P2-05 |
 | C-4 ✅ | P1-03 *(merged)* | M-4 | P4-09 |
-| C-5 | P1-04 | M-5 | P4-09 |
+| C-5 ✅ | P1-04 *(merged)* | M-5 | P4-09 |
 | H-1 | P2-02 | M-6 | P4-09 |
 | H-2 | P2-03 | M-7 | P4-08 |
 | H-3 | P1-05 | M-8 | P4-08 |
@@ -265,7 +265,7 @@ order up front.
 
 | File | Plans | Suggested order |
 |---|---|---|
-| `src/Kbot.DcaService/DcaWorker.cs` | P1-02, P1-03, P1-04, P2-01, P2-05, P3-02, P4-09 | P1-02 → P1-03 → P1-04 → P2-01 → P2-05 → P3-02 → P4-09 |
+| `src/Kbot.DcaService/DcaWorker.cs` | P1-02, P1-03, P1-04, P2-01, P2-05, P3-02, P4-09 | P1-02 → P1-03 → P1-04 (all merged) → P2-01 → P2-05 → P3-02 → P4-09 |
 | `src/Kbot.Common/Api/KrakenClient.cs` | P1-02, P2-01, P2-02, P2-03, P2-05, P2-06, P4-03, P4-04 | P1-02 → P2-02 → P2-01 → P2-03 → P2-06 → P2-05 → P4-03 → P4-04 |
 | `src/Kbot.Common/Api/KrakenApi.cs` | P1-09, P4-03, P4-04, P4-05, P4-10 | P1-09 → P4-05 → P4-03 → P4-04 → P4-10 |
 | `src/Kbot.DcaService/Utility/TimeComputeService.cs` | P1-02, P1-03, P1-10, P3-01, P3-02 | P1-02 ✅ → P1-03 ✅ → P1-10 → P3-01 → P3-02 (both merged; P1-10 is next) |
