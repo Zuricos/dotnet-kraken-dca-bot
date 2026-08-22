@@ -6,7 +6,7 @@
 | **Phase** | 2 — Contract & numeric correctness |
 | **Branch** | `refactor/p2-i1-kraken-result-protocol` |
 | **Effort** | M (~1 day) |
-| **Depends on** | **P1-02** and **P1-04** merged (this replaces P1-02's tactical guards with a typed contract and relies on the loop being fault-tolerant) |
+| **Depends on** | ✅ **P1-02** and **P1-04** — both merged, so this is ready (it replaces P1-02's tactical guards with a typed contract and relies on the loop being fault-tolerant) |
 | **Blocks** | **P2-05**, **P2-06**, **P3-01** — and it is the single highest-value change in the review |
 | **Conflict surface** | `src/Kbot.Common/Api/KrakenClient.cs` (also P2-02, P2-03, P2-06), `src/Kbot.DcaService/DcaWorker.cs`, `src/Kbot.MailService/Utility/OrderService.cs` |
 

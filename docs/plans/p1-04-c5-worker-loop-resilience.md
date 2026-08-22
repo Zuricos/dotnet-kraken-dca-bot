@@ -2,6 +2,7 @@
 
 |  |  |
 |---|---|
+| **Status** | ✅ **Resolved** — merged into `review-and-fix` via PR #46 |
 | **Findings** | C-5 |
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `fix/p1-c5-worker-loop-resilience` |
@@ -98,3 +99,74 @@ dotnet build Kbot.sln -warnaserror
 dotnet test Kbot.sln --filter "TestCategory!=LiveExchange&TestCategory!=LiveApi"
 dotnet csharpier check .
 ```
+
+---
+
+## Resolution
+
+Merged into `review-and-fix` from `fix/p1-c5-worker-loop-resilience` as PR #46. **C-5 is closed**: no
+throw in either service can stop the host any more, so a transient fault costs a logged error and a
+paced retry instead of a container restart that reloads pre-order state and buys again.
+
+What landed:
+
+- [ExponentialBackoff.cs](../../src/Kbot.Common/Helpers/ExponentialBackoff.cs) — the shared retry
+  pacing: `Next()` doubles the delay per consecutive failure, `Reset()` returns it to the base after
+  a success, and every value stays inside `[baseDelay, maxDelay]`. The jitter fills the window
+  between the previous ceiling and the current one rather than the full `[0, ceiling]` range the plan
+  suggested: full jitter can return a delay shorter than the one before it, and the acceptance
+  criterion requires the loops to back off *monotonically*. `Random.Shared` supplies the jitter, so
+  there is no shared `Random` to synchronise.
+- [DcaWorker.cs](../../src/Kbot.DcaService/DcaWorker.cs) — the loop body is guarded, around P1-03's
+  post-order `State.Save()` rather than in place of it. A caught
+  exception is logged with the exception object and the retry delay, then paced by a backoff whose
+  floor is `WaitOptions.MinWaitTime` and whose cap is `WaitOptions.MaxWaitTime`; a successful cycle
+  resets it. `catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)` and a
+  guarded `Task.Delay` make a stop an orderly exit rather than a logged fault.
+- [DcaWorker.cs](../../src/Kbot.DcaService/DcaWorker.cs) — the startup path (`DcaStateHandler.Load()`
+  and the first `ComputeNextTopUpTime`) moved into `SeedState()` and now runs *inside* that guard on
+  the loop's first iteration, so a throw there is retried after a backoff delay instead of stopping
+  the host before the loop exists.
+- [DailyReporter.cs](../../src/Kbot.MailService/DailyReporter.cs) — `WelcomeOrRestartMessage()` and
+  `SendReportOnStartup()` are guarded individually, so a failed startup mail no longer prevents the
+  daily loop from running, and the per-iteration `SendDailyMail()` / `SendReportAsync()` pair is
+  guarded with its own backoff (1 min → 1 h) before the next attempt.
+- [RestartNoticeThrottle.cs](../../src/Kbot.MailService/Utility/RestartNoticeThrottle.cs) — the
+  restart notification is rate-limited. The simplest correct option turned out to be a marker file
+  (`state/restart-notice.json`) holding the timestamp of the last *successful* send: it survives the
+  restart it is meant to catch, which an in-memory guard cannot. A second notice inside an hour is
+  suppressed; a missing, unreadable or future-dated marker counts as "no recent send", and a marker
+  that cannot be written is a warning, never a fault.
+
+Two things the scope implied but did not spell out:
+
+- A non-positive backoff delay in `DcaWorker` falls back to one second. `WaitOptions` of `00:00:00`
+  passes validation today, and pacing a persistent fault at zero would replace a restart loop with a
+  busy loop against Kraken. `ExponentialBackoff` likewise normalises a negative base and an inverted
+  range instead of throwing — a guard that throws on bad config is not a guard.
+- `Task.Delay` is wrapped as well, not just the cycle: a stop arriving during the wait is the common
+  case, and it must exit without an error.
+
+Tests: [ExponentialBackoffTest.cs](../../test/Kbot.Common.Test/ExponentialBackoffTest.cs) pins the
+first delay, the monotonic growth, the cap, the jitter window, `Reset()`, the degenerate ranges and
+the absence of overflow.
+[WorkerLoopResilienceTest.cs](../../test/Kbot.DcaService.Test/WorkerLoopResilienceTest.cs) runs the
+real `ExecuteAsync` against a collaborator that throws on every iteration (an empty `HolidayService`
+cache — H-7, which P4-02 owns) and asserts an error with its exception per iteration, retry delays
+that never shrink and settle on `MaxWaitTime`, and a worker task that is still running; a second test
+asserts that stopping the service exits promptly, runs to completion and logs nothing.
+[RestartNoticeThrottleTest.cs](../../test/Kbot.MailService.Test/RestartNoticeThrottleTest.cs) covers
+the quiet period, the first run, a stale marker, a future-dated marker, a corrupt marker and an
+unwritable location.
+
+Verified: `dotnet build Kbot.sln -warnaserror` clean, 64 tests pass under the default filter,
+`csharpier check .` clean.
+
+Deliberately not done: the individual throws themselves — C-4 → **P1-03**, H-7 → **P4-02**,
+state-file IO → **P4-01**; watermark semantics on a failed fetch → **P2-07**;
+`CancellationToken` propagation into the Kraken client → **P4-04**; healthchecks and the dead-man's
+switch → **P4-06** and `FUTURE_FEATURES.md` F-1. The mail loop has no test driving `ExecuteAsync`
+either: `DailyReporter` depends on the concrete `MailSenderService`, which needs a database, and the
+seams for that are **P3-01** / **P3-03**.
+
+Follow-ups unblocked: **P2-01** — the last of its two prerequisites.
