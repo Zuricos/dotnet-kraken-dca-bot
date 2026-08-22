@@ -35,9 +35,11 @@ prompts and the status board.
    dotnet test Kbot.sln --filter "TestCategory!=LiveExchange"
    dotnet csharpier check .
    ```
-   > ⚠️ Until **P1-01** is merged, `dotnet test Kbot.sln` places **real buy orders on live Kraken**
-   > and sends real mail. Run individual test projects with an explicit `--filter`, or do not run
-   > the suite at all. See [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
+   > ✅ **P1-01 is merged** (`58c2262`), so `dotnet test Kbot.sln` is safe by default — `.runsettings`
+   > excludes the `LiveExchange` / `LiveApi` categories and those tests additionally require
+   > `KBOT_ALLOW_LIVE_TRADING=1`. Never set that variable: `LiveExchange` places **real buy orders on
+   > live Kraken** and sends real mail. See
+   > [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
 7. **PR title** = plan ID + title (e.g. `fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)`).
    PR body: link the plan file, list the finding IDs closed, and state what you verified.
 
@@ -46,7 +48,7 @@ prompts and the status board.
 | Plan | Findings | Title | Branch |
 |---|---|---|---|
 | **Phase 1 — stop the bleeding** ||||
-| P1-01 | C-1 | Gate the live-trading tests | `test/p1-c1-gate-live-trading-tests` |
+| P1-01 ✅ | C-1 | Gate the live-trading tests *(resolved — `58c2262`)* | `test/p1-c1-gate-live-trading-tests` |
 | P1-02 | C-2, C-3 | Guard the Kraken sentinel call sites | `fix/p1-c2-c3-guard-worker-sentinels` |
 | P1-03 | C-4 | Clamp the top-up day, persist state before bookkeeping | `fix/p1-c4-topup-day-clamp-and-state-order` |
 | P1-04 | C-5 | Worker loop resilience and backoff | `fix/p1-c5-worker-loop-resilience` |

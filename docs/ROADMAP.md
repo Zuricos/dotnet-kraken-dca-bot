@@ -139,7 +139,7 @@ merge order matters (see the note below) but their *development* does not.
 
 | Plan | Branch | Findings |
 |---|---|---|
-| P1-01 | `test/p1-c1-gate-live-trading-tests` | C-1 |
+| ~~P1-01~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | C-1 |
 | P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | C-2, C-3 |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | C-4 |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | C-5 |
@@ -216,7 +216,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 
 | Finding | Plan | Finding | Plan |
 |---|---|---|---|
-| C-1 | P1-01 | M-1 | P4-08 |
+| C-1 ✅ | P1-01 *(merged)* | M-1 | P4-08 |
 | C-2 | P1-02 (→ P2-01) | M-2 | P4-09 |
 | C-3 | P1-02 (→ P2-01) | M-3 | P2-05 |
 | C-4 | P1-03 | M-4 | P4-09 |

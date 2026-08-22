@@ -15,7 +15,7 @@ then follow §8 to produce the next handoff.
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
 | What has been fixed | **Nothing.** All 64 findings are open. This handoff starts the execution. |
-| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. No code changes anywhere yet. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 has landed there (`58c2262`); everything else is still open. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
@@ -25,11 +25,11 @@ all in Wave 0 and they are the point of this handoff.
 
 ## 2. Two hard rules
 
-1. **Never run the full test suite with credentials configured.**
-   `dotnet test Kbot.sln` today places **real buy orders on live Kraken** and sends real email
-   (finding C-1). Until plan **P1-01** is merged, run only a filtered subset, e.g.
-   `dotnet test test/Kbot.DcaService.Test/Kbot.DcaService.Test.csproj --filter "FullyQualifiedName~TimeCompute"`.
-   After P1-01, `dotnet test Kbot.sln` is safe by default.
+1. ~~**Never run the full test suite with credentials configured.**~~ **Resolved by P1-01**
+   (`58c2262`). `dotnet test Kbot.sln` is now safe by default: `.runsettings` excludes the
+   `LiveExchange` and `LiveApi` categories, and each of those tests also refuses to run without
+   `KBOT_ALLOW_LIVE_TRADING=1`. Do **not** set that variable with real credentials configured — the
+   `LiveExchange` tests place real orders and send real mail.
 2. **Stay inside your plan's scope.** Every plan has an explicit *Out of scope* list naming the plan
    that owns each deferred item. Fixing something outside your scope creates a merge conflict for
    another agent. Note it in the PR body instead.
@@ -63,7 +63,7 @@ If you ever see a plan or an older doc say "base on `main`", it is stale — thi
 
 | # | Plan | Branch | Findings | Effort |
 |---|---|---|---|---|
-| 1 | [P1-01](plans/p1-01-c1-gate-live-trading-tests.md) | `test/p1-c1-gate-live-trading-tests` | **C-1** | S |
+| ~~1~~ | ~~[P1-01](plans/p1-01-c1-gate-live-trading-tests.md)~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | **C-1** | S |
 | 2 | [P1-02](plans/p1-02-c2-c3-guard-worker-sentinels.md) | `fix/p1-c2-c3-guard-worker-sentinels` | **C-2, C-3** | S |
 | 3 | [P1-03](plans/p1-03-c4-topup-day-clamp-and-state-order.md) | `fix/p1-c4-topup-day-clamp-and-state-order` | **C-4** | S |
 | 4 | [P1-04](plans/p1-04-c5-worker-loop-resilience.md) | `fix/p1-c5-worker-loop-resilience` | **C-5** | S |
@@ -83,8 +83,8 @@ Development is parallel; **merging** has two ordering constraints, both from sha
 - `src/Kbot.DcaService/DcaWorker.cs` → merge **P1-02 → P1-03 → P1-04**
 - `src/Kbot.DcaService/Utility/TimeComputeService.cs` → merge **P1-03 → P1-02**
 
-Combined, a conflict-free merge order for the critical four is: **P1-03 → P1-02 → P1-04** (P1-01 is
-independent, merge it whenever — earliest is best, it makes the suite safe for everyone else).
+Combined, a conflict-free merge order for the critical four is: **P1-03 → P1-02 → P1-04** (P1-01 was
+independent and is already merged, which is what makes the suite safe for everyone else).
 Each conflict is a small local edit; rebasing is a two-minute job, not a redesign.
 
 ---
@@ -95,7 +95,7 @@ One prompt per plan. Each is self-contained: paste it into a fresh session or an
 needed. Substitute the base branch if you took the alternative in §3.
 
 <details>
-<summary><b>P1-01 · Gate the live-trading tests (C-1)</b></summary>
+<summary><b>P1-01 · Gate the live-trading tests (C-1) — ✅ merged as <code>58c2262</code>, nothing to do</b></summary>
 
 ```
 Work in the repo dotnet-kraken-dca-bot.
@@ -144,7 +144,7 @@ TimeComputeService.cs. Keep your edits local and minimal so a rebase stays trivi
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
@@ -175,7 +175,7 @@ DcaWorker.cs. Keep edits local and minimal.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
@@ -208,7 +208,7 @@ puts you last of the three. P2-07 also edits DailyReporter.cs.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
@@ -236,7 +236,7 @@ removing those copy directives.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the docker build.
 - Then open a PR into review-and-fix titled "fix: P1-06 move .dockerignore to the repo root and stop copying
@@ -269,7 +269,7 @@ one copy.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
@@ -302,7 +302,7 @@ that is an operator action, not something you can fix in code.
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan (compose
   healthchecks and depends_on belong to P4-06).
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Then open a PR into review-and-fix titled "fix: P1-08 remove the committed DB password and published
@@ -331,7 +331,7 @@ This is the smallest plan in the set — expect well under an hour.
 
 Rules:
 - Stay in scope. Log sink configuration and secret templates belong to other plans.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
@@ -363,7 +363,7 @@ by P2-03.
 
 Rules:
 - Stay in scope. Do NOT change double to decimal — that is P2-03.
-- Do NOT run `dotnet test Kbot.sln` — it trades real money until plan P1-01 lands. Run filtered
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the de-DE / fr-FR runs.
@@ -376,7 +376,7 @@ Rules:
 
 ## 6. Definition of done, per PR
 
-> There is no CI yet — plan **P1-05** adds it, and it is gated behind P1-01. Until then these
+> There is no CI yet — plan **P1-05** adds it; P1-01 has merged, so it is unblocked. Until then these
 > checks are yours to run locally. Note that the two existing publish workflows are filtered to
 > `pull_request: branches: [main]`, so PRs into `review-and-fix` trigger **nothing** — no image
 > is built or pushed by this work.
@@ -385,7 +385,7 @@ Rules:
 - `dotnet build Kbot.sln -warnaserror` clean.
 - `dotnet csharpier check .` clean (the repo is csharpier-formatted; `.editorconfig` is authoritative).
 - Tests pass under the safe filter
-  (`--filter "TestCategory!=LiveExchange&TestCategory!=LiveApi"`, meaningful once P1-01 lands).
+  (applied by default through `.runsettings` since P1-01 landed).
 - PR body links the plan file, lists what was verified, and names anything deliberately left out.
 - Nothing outside the plan's scope changed.
 
@@ -397,7 +397,7 @@ Update this as work lands. `—` = not started.
 
 | Plan | Branch | Status | PR | Merged |
 |---|---|---|---|---|
-| P1-01 | `test/p1-c1-gate-live-trading-tests` | — | | |
+| P1-01 | `test/p1-c1-gate-live-trading-tests` | ✅ resolved | #42 | `58c2262` (2026-08-22) |
 | P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | — | | |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | — | | |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | — | | |
@@ -417,7 +417,7 @@ Each merge unlocks specific plans. From [ROADMAP.md](ROADMAP.md) §4:
 
 | When this merges | These become ready |
 |---|---|
-| P1-01 | **P1-05** (`ci/p1-h3-build-test-lint-pipeline`) — CI must not be wired up before the tests are safe, or GitHub Actions will place orders |
+| ✅ P1-01 *(merged)* | **P1-05** (`ci/p1-h3-build-test-lint-pipeline`) — **now ready**; CI could not be wired up before the tests were safe |
 | P1-03 | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) |
 | P1-02 **and** P1-04 | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review |
 | P1-03 **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) |
@@ -445,7 +445,7 @@ see what is still open, then either dispatch the ready-to-paste agent prompts in
 one plan yourself.
 
 Two hard rules before you touch anything: (1) `dotnet test Kbot.sln` places real buy orders on live
-Kraken and sends real email until plan P1-01 is merged — run filtered tests only; (2) each plan in
+Kraken and sends real email only if you opt in with KBOT_ALLOW_LIVE_TRADING=1 (P1-01 is merged) — never do; (2) each plan in
 docs/plans/ has an explicit Out of scope list — respect it, because another plan owns those items
 and overlapping edits create merge conflicts.
 ```

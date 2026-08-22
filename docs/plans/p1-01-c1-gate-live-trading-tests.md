@@ -2,6 +2,7 @@
 
 |  |  |
 |---|---|
+| **Status** | ✅ **Resolved** — merged into `review-and-fix` on 2026-08-22 as `58c2262` (PR #42) |
 | **Findings** | C-1 (partially M-25) |
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `test/p1-c1-gate-live-trading-tests` |
@@ -91,3 +92,31 @@ dotnet test Kbot.sln                       # must be green and must not touch th
 dotnet test Kbot.sln --list-tests | head -40
 dotnet csharpier check .
 ```
+
+---
+
+## Resolution
+
+Merged as `58c2262` — *test: P1-01 gate the live-trading tests (C-1)* (PR #42) into
+`review-and-fix` on 2026-08-22. Finding **C-1 is closed**; `dotnet test Kbot.sln` no longer touches
+Kraken or the maintainer's mailbox.
+
+What landed:
+
+- [.runsettings](../../.runsettings) excludes `LiveExchange` and `LiveApi` by default, wired in via
+  [test/Directory.Build.props](../../test/Directory.Build.props).
+- [test/Shared/LiveGuard.cs](../../test/Shared/LiveGuard.cs) — the runtime `KBOT_ALLOW_LIVE_TRADING=1`
+  opt-in, linked into all three test projects and called from every live test, so a manual
+  `--filter` cannot arm them on its own.
+- Categories applied in `KrakenApiTest`, `DcaWorkerTest`, `MailGenereateTest` and `HolidayServiceTest`.
+- New hermetic tests: [KrakenApiRequestShapeTest.cs](../../test/Kbot.Common.Test/KrakenApiRequestShapeTest.cs)
+  asserts the signed request body, `API-Key` / `API-Sign` headers, path and nonce through an injected
+  `HttpMessageHandler` (added as an `internal` `KrakenApi` seam plus `InternalsVisibleTo`);
+  [ReportContentTest.cs](../../test/Kbot.MailService.Test/ReportContentTest.cs) asserts the generated
+  HTML and CSV instead of sending mail.
+- `README.md` gained the *Running the tests* warning block.
+
+Deliberately not done — as the plan's scope item 6 allows: `DcaWorker.FixOrderId` stays, because
+`DcaWorkerTest` still uses it. It is noted for **P3-02**.
+
+Follow-ups unblocked: **P1-05** (CI can now rely on the default filter) and **P3-03**.

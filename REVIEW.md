@@ -98,6 +98,10 @@ These are reachable in normal operation and can lose money or crash-loop the ser
 
 ### C-1 · Tests place real buy orders on the live exchange and send real email
 
+> ✅ **Resolved** by [P1-01](docs/plans/p1-01-c1-gate-live-trading-tests.md), merged as `58c2262`
+> (2026-08-22). The live tests are category-tagged, excluded by `.runsettings` and additionally
+> gated on `KBOT_ALLOW_LIVE_TRADING=1`; the signing path and the mail report now have hermetic tests.
+
 **Files:** [KrakenApiTest.cs:56-80](test/Kbot.Common.Test/KrakenApiTest.cs#L56-L80) · [DcaWorkerTest.cs:50-80](test/Kbot.DcaService.Test/DcaWorkerTest.cs#L50-L80) · [MailGenereateTest.cs:50-81](test/Kbot.MailService.Test/MailGenereateTest.cs#L50-L81)
 
 `TestSendAndCancelBuyOrder` builds a real `OrderRequest` (`Volume = 0.00005`, `Price = currentPrice / 2`) and calls `SendOrder` against `https://api.kraken.com`. `DcaWorkerTest` goes further and starts the **entire production `DcaWorker`**, letting it run a full investment cycle. Both then depend on a follow-up `CancelOrder` succeeding — the test's own assertion message concedes the failure mode: `"Cancel order failed! Do it manually!"`. If the process dies between send and cancel, or the cancel rate-limits ([KrakenApi.cs:80](src/Kbot.Common/Api/KrakenApi.cs#L80) returns `null` on HTTP 429 → `CancelOrder` returns `false`), the order is left resting on the book.
