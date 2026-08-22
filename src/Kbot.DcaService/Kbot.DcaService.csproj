@@ -19,15 +19,11 @@
     <PackageReference Include="Serilog" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
   </ItemGroup>
-  <ItemGroup>
-    <!--
-      Only appsettings.json is copied. A local secrets.json must never be copied to the output
-      directory: the publish output becomes the image, so that would ship developer credentials.
-      Secrets come from /run/secrets/dca-secrets, user secrets or environment variables, and the
-      state file lives at state/state.json (a mounted volume), not next to the binary.
-    -->
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+  <!--
+    Nothing here controls which JSON files are copied to the output and publish directories, so do
+    not add copy directives for them. Microsoft.NET.Sdk.Worker globs **\*.json into Content with
+    CopyToOutputDirectory and CopyToPublishDirectory = PreserveNewest (and removes those files from
+    None), which is what copies appsettings.json. Local secrets and state are kept out of that glob,
+    and therefore out of the image, by $(DefaultItemExcludes) in ../../Directory.Build.props.
+  -->
 </Project>
