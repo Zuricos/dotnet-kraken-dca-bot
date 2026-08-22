@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Kbot.Common.Test;
 
 [TestClass]
+[TestCategory("LiveApi")]
 public class HolidayServiceTest
 {
   private IServiceProvider _serviceProvider = null!;

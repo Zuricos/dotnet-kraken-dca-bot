@@ -35,6 +35,7 @@ public class ApiTestPublic
   }
 
   [TestMethod]
+  [TestCategory("LiveApi")]
   public async Task TestQueryTicker()
   {
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
@@ -43,6 +44,7 @@ public class ApiTestPublic
   }
 
   [TestMethod]
+  [TestCategory("LiveApi")]
   public async Task TestQueryBalance()
   {
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
@@ -53,8 +55,10 @@ public class ApiTestPublic
   }
 
   [TestMethod]
+  [TestCategory("LiveExchange")]
   public async Task TestSendAndCancelBuyOrder()
   {
+    LiveGuard.RequireOptIn();
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
     var currentPrice = await client.GetCurrentCryptoPrice("XBTCHF");
     var cl_ord_id = $"test-{DateTime.UtcNow:yyyyMMddHHmm}";
@@ -80,6 +84,7 @@ public class ApiTestPublic
   }
 
   [TestMethod]
+  [TestCategory("LiveApi")]
   public async Task TestQueryClosedOrders()
   {
     var client = _serviceProvider.GetRequiredService<KrakenClient>();
@@ -90,6 +95,7 @@ public class ApiTestPublic
   }
 
   [TestMethod]
+  [TestCategory("LiveApi")]
   public async Task TestQueryAllClosedOrders()
   {
     var client = _serviceProvider.GetRequiredService<KrakenClient>();

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Kbot.DcaService.Test;
 
 [TestClass]
+[TestCategory("LiveExchange")]
 public class DcaWorkerTest
 {
   private IServiceProvider _serviceProvider = null!;
@@ -19,6 +20,7 @@ public class DcaWorkerTest
   [TestInitialize]
   public void Setup()
   {
+    LiveGuard.RequireOptIn();
     var builder = Host.CreateApplicationBuilder();
     builder.Environment.EnvironmentName = "Development";
 

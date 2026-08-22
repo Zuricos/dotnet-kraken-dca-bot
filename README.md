@@ -12,6 +12,7 @@ Do not share your api keys and any privat details!
 3. [Installation](#installation)
 5. [Miscellaneous](#miscellaneous)
     - [Tipps](#tipps)
+    - [Running the tests](#running-the-tests)
     - [Contributing](#contributing)
     - [Bug Report](#bug-report)
 6. [Donation](#donation)
@@ -66,17 +67,28 @@ Please have a look at the wiki [https://github.com/Zuricos/dotnet-kraken-dca-bot
 Create a Subaccount for the DCA and create the api keys for it. If you want to trade without the bot intercept your trading wallet and use the money which is designed for trading.
 -> See [https://docs.kraken.com/api/docs/rest-api/create-subaccount](https://docs.kraken.com/api/docs/rest-api/create-subaccount)
 
+### Running the tests
+`dotnet test Kbot.sln` runs only the hermetic tests and touches neither Kraken nor your mailbox.
+
+The tests that do are tagged `[TestCategory("LiveExchange")]` (they place **real orders with real
+money** and send **real mail**) or `[TestCategory("LiveApi")]` (read-only, but they need live api
+credentials or network). Both categories are excluded by [.runsettings](.runsettings). Running them
+takes an explicit opt-in as well, so a stray filter cannot arm them:
+
+```bash
+KBOT_ALLOW_LIVE_TRADING=1 dotnet test Kbot.sln --filter "TestCategory=LiveExchange"
+```
+
+Without that environment variable the live tests report as skipped. Only opt in against an account
+you are willing to trade on — the order tests buy bitcoin and cancel it again, and a cancel can
+fail.
+
 ### Project documentation
 - [REVIEW.md](REVIEW.md) — full code review of the repository (2026-08-21)
 - [docs/ROADMAP.md](docs/ROADMAP.md) — remediation roadmap: phases, dependencies, branch-per-fix plan
 - [docs/HANDOFF.md](docs/HANDOFF.md) — the wave currently being worked on, with status board
 - [docs/plans/](docs/plans/) — one implementation plan per finding
 - [FUTURE_FEATURES.md](FUTURE_FEATURES.md) — proposed features and their prerequisites
-
-> ⚠️ Some tests in this repository currently place **real orders on live Kraken** and send real
-> mail. Do not run `dotnet test` with valid credentials configured until the test-gating fix
-> ([docs/plans/p1-01-c1-gate-live-trading-tests.md](docs/plans/p1-01-c1-gate-live-trading-tests.md))
-> has been merged.
 
 ### Contributing
 Contributions are welcome! Just reach out to me over an issue or the like.

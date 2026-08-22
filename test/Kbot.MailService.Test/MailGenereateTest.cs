@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Kbot.MailService.Test;
 
 [TestClass]
+[TestCategory("LiveExchange")]
 public class MailGenerateTest
 {
   private IServiceProvider _serviceProvider = null!;
@@ -20,6 +21,7 @@ public class MailGenerateTest
   [TestInitialize]
   public void Setup()
   {
+    LiveGuard.RequireOptIn();
     var builder = Host.CreateApplicationBuilder();
     builder.Environment.EnvironmentName = "Development";
 
