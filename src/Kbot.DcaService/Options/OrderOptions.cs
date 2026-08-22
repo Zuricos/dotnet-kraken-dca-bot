@@ -23,7 +23,8 @@ public record OrderOptions
 /// these are all values a human types once, and a typo is far more likely than an exotic-but-valid
 /// setting.
 /// </summary>
-public partial class OrderOptionsValidator : IValidateOptions<OrderOptions>
+public partial class OrderOptionsValidator(ILogger<OrderOptionsValidator> logger)
+  : IValidateOptions<OrderOptions>
 {
   /// <summary>
   /// Sanity band for a <em>price</em> multiplier: the point of it is to sit a hair above or below
@@ -37,6 +38,12 @@ public partial class OrderOptionsValidator : IValidateOptions<OrderOptions>
 
   /// <summary><see cref="OrderOptions.Fee"/> is a percentage, not a fraction.</summary>
   public const double MaxFeePercent = 100;
+
+  /// <summary>
+  /// Below this the limit price sits under the market, which is legal but has a failure mode worth a
+  /// log line — see the warning at the end of <see cref="Validate"/>.
+  /// </summary>
+  public const double AtMarketAskMultiplier = 1;
 
   public ValidateOptionsResult Validate(string? name, OrderOptions options)
   {
@@ -81,7 +88,7 @@ public partial class OrderOptionsValidator : IValidateOptions<OrderOptions>
       // hand through verbatim, lower-case pairs, and a pair accidentally set to a price or a path.
       // It is not a Kraken pair list — resolving pairs against the AssetPairs endpoint is P2-05.
       vor.Add(
-        $"CryptoPair must be 5-12 upper-case letters or digits, e.g. XBTCHF (was "
+        $"CryptoPair must be 4-16 upper-case letters or digits, e.g. XBTCHF (was "
           + $"'{options.CryptoPair}')"
       );
     }
@@ -89,9 +96,27 @@ public partial class OrderOptionsValidator : IValidateOptions<OrderOptions>
     {
       return ValidateOptionsResult.Fail("OrderOptions incomplete: " + string.Join(", ", vor));
     }
+    if (options.AskMultiplier < AtMarketAskMultiplier)
+    {
+      // Legal but a bad idea, so it is warned about rather than refused: the test project's
+      // appsettings.json uses 0.5 on purpose, to keep the LiveExchange order from ever filling.
+      logger.LogWarning(
+        "AskMultiplier is {AskMultiplier}, below the market ask: the limit order may rest unfilled, "
+          + "and the schedule advances anyway (LastInvestmentTime is persisted on acceptance, not on "
+          + "a fill), so DCA can stop silently with the fiat locked in an open order.",
+        options.AskMultiplier
+      );
+    }
     return ValidateOptionsResult.Success;
   }
 
-  [GeneratedRegex("^[A-Z0-9]{5,12}$")]
+  /// <remarks>
+  /// The bounds come from Kraken's live <c>AssetPairs</c> list, not from a guess: the shortest
+  /// altnames it trades are four characters (<c>SUSD</c>, <c>AEUR</c>, …) and the longest thirteen
+  /// (<c>CHILLHOUSEEUR</c>), so <c>{5,12}</c> would have refused to start for 17 real pairs.
+  /// <c>[A-Z0-9]</c> holds for every current altname, which is what still catches the quoted
+  /// <c>"XBTCHF"</c> of M-14, a lower-case pair and <c>XBT/CHF</c>.
+  /// </remarks>
+  [GeneratedRegex("^[A-Z0-9]{4,16}$")]
   private static partial Regex CryptoPairPattern();
 }
