@@ -152,4 +152,4 @@ the Dockerfile, but this is now on the path a successful order takes and looks l
 issue #23 (**P4-01** owns that file). `HolidayService.IsHoliday` throws on an empty holiday cache,
 i.e. when the startup fetch failed (**P4-02**).
 
-Follow-ups unblocked: **P1-10**; **P2-08** once P1-07 lands.
+Follow-ups unblocked: **P1-10**; **P2-08** once P1-07 lands — which it has, as PR #47.

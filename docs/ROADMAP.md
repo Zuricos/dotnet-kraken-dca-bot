@@ -149,7 +149,7 @@ merge order matters (see the note below) but their *development* does not.
 | ~~P1-03~~ ✅ merged | `fix/p1-c4-topup-day-clamp-and-state-order` | C-4 |
 | ~~P1-04~~ ✅ merged | `fix/p1-c5-worker-loop-resilience` | C-5 |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
-| P1-07 | `fix/p1-h10-tighten-options-validators` | H-10 |
+| ~~P1-07~~ ✅ merged | `fix/p1-h10-tighten-options-validators` | H-10 |
 | ~~P1-08~~ ✅ merged | `fix/p1-h11-database-credentials-exposure` | H-11 |
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | M-16 |
 | P2-02 | `fix/p2-h1-invariant-culture` | H-1 |
@@ -168,7 +168,7 @@ merge order matters (see the note below) but their *development* does not.
 | P1-10 | ✅ P1-03 *(merged — ready)* | `test/p1-h12-deterministic-timecompute-tests` |
 | P2-01 | ✅ P1-02 + P1-04 (**both merged — ready**) | `refactor/p2-i1-kraken-result-protocol` |
 | P2-03 | P2-02 | `refactor/p2-h2-decimal-money` |
-| P2-08 | ✅ P1-03 + P1-07 (waiting on P1-07) | `refactor/p2-i5-shared-trading-options` |
+| P2-08 | ✅ P1-03 + P1-07 (**both merged — ready**) | `refactor/p2-i5-shared-trading-options` |
 | P2-09 | P1-05 | `ci/p2-workflow-hardening` |
 | P4-01 | — (soft: P3-01) | `refactor/p4-h6-json-state-store` |
 | P4-02 | — (soft: P3-01) | `fix/p4-h7-holiday-cache-resilience` |
@@ -235,7 +235,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | H-7 | P4-02 | M-12 | P4-08 |
 | H-8 | P4-03 | M-13 | P4-08 |
 | H-9 | P2-06 | M-14 | P4-10 |
-| H-10 | P1-07 | M-15 | P4-10 |
+| H-10 ✅ | P1-07 *(merged)* | M-15 | P4-10 |
 | H-11 ✅ | P1-08 *(merged)* | M-16 | P1-09 |
 | H-12 | P1-10 | M-17 | P4-06 |
 | I-1 | P2-01 | M-18 | P2-09 |
@@ -276,7 +276,7 @@ order up front.
 | `docker/example-compose.yaml` | P1-08 ✅, P4-06, P5-02 | P1-08 *(merged)* → P4-06 → P5-02 |
 | `docker/stack.env` | P1-08 ✅, P2-08, P4-10 | P1-08 *(merged)* → P2-08 → P4-10 |
 | `README.md` | P4-05, P5-01, P5-02, P5-03 | P5-01 → P5-02 → P5-03 (P4-05 adds one section; merge whenever) |
-| Both `ServiceCollectionExtension.cs` | P1-07, P2-08, P3-01, P4-03, P5-04 | P1-07 → P2-08 → P3-01 → P4-03 → P5-04 |
+| Both `ServiceCollectionExtension.cs` | P2-08, P3-01, P4-03, P5-04 | P2-08 → P3-01 → P4-03 → P5-04 (P1-07 turned out not to need either file) |
 
 ---
 

@@ -2,6 +2,7 @@
 
 |  |  |
 |---|---|
+| **Status** | ✅ **Resolved** — merged into `review-and-fix` via PR #47 |
 | **Findings** | H-10 |
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `fix/p1-h10-tighten-options-validators` |
@@ -82,3 +83,68 @@ dotnet test Kbot.sln --filter "TestCategory!=LiveExchange&TestCategory!=LiveApi"
 (cd src/Kbot.DcaService && env -i DOTNET_ENVIRONMENT=Production dotnet run --no-build || true)
 dotnet csharpier check .
 ```
+
+---
+
+## Resolution
+
+Merged into `review-and-fix` from `fix/p1-h10-tighten-options-validators` as PR #47. **H-10 is
+closed**: no degenerate options value starts the DCA service any more, and an omitted `stack.env`
+fails at startup instead of busy-looping against Kraken.
+
+What landed:
+
+- [OrderOptions.cs](../../src/Kbot.DcaService/Options/OrderOptions.cs) — `MinOrderVolume > 0`;
+  `AskMultiplier` bounded to the sanity band `[0.5, 1.5]`, because it multiplies the ask *price* and
+  the typo `100` for `1.0001` would bid a hundred times the ask; `Fee` bounded to `[0, 100]` as the
+  percentage it is; `CryptoPair` matched against `^[A-Z0-9]{5,12}$`. Every `double` is additionally
+  checked with `double.IsFinite`: a `TypeConverter` parses `"Infinity"` and `"NaN"`, and an infinite
+  cost is as degenerate as a zero one. P1-02's `Enum.IsDefined(options.Type)` check was already
+  there and was kept as the single copy.
+- [WaitOptions.cs](../../src/Kbot.DcaService/Options/WaitOptions.cs) — `MinWaitTime` must be at least
+  one second, `MaxWaitTime` greater than zero, `MinWaitTime <= MaxWaitTime` unchanged. The plan's
+  separate `> TimeSpan.Zero` rule is subsumed by the one-second floor deliberately: two messages for
+  `00:00:00` only make the startup error harder to read, and the tests still prove zero, negative
+  and sub-second values are all rejected. A `MinWaitTime` under five seconds is logged as a warning
+  rather than refused, which is why the validator now takes an `ILogger`.
+- [BalanceOptions.cs](../../src/Kbot.DcaService/Options/BalanceOptions.cs) — untouched.
+  `ReserveFiat >= 0` is correct (reserving nothing is the default) and P1-03 owns
+  `DefaultTopupDayOfMonth`.
+- [CultureOptions.cs](../../src/Kbot.Common/Options/CultureOptions.cs) — untouched, as planned;
+  M-15's `CultureInfo` / `CountyCode` existence checks belong to P4-10.
+- [appsettings.json](../../src/Kbot.DcaService/appsettings.json) — `OrderOptions`, `BalanceOptions`,
+  `WaitOptions` **and** `CultureOptions` now carry the defaults from `docker/stack.env`.
+  `CryptoPair` deliberately has none: which asset the bot buys must stay a deliberate choice.
+- [DcaWorker.cs](../../src/Kbot.DcaService/DcaWorker.cs) — comment only. P1-04's non-positive-delay
+  floor stays as defence in depth; it no longer describes this plan as the missing fix.
+
+`CultureOptions` got defaults although the plan's snippet listed only three sections: the acceptance
+criterion "starting with only `appsettings.json` fails only on `CryptoPair` and `Secrets`" cannot
+hold while the culture section is empty. The cost is that a partial configuration which sets
+`CryptoPair` but omits `CultureOptions` now gets `CHF` silently — and a wrong `Fiat` surfaces as
+"not enough balance", not as a wrong buy.
+
+Tests: [OptionsValidatorTest.cs](../../test/Kbot.DcaService.Test/OptionsValidatorTest.cs),
+[ShippedDefaultsTest.cs](../../test/Kbot.DcaService.Test/ShippedDefaultsTest.cs) and
+[CultureOptionsValidatorTest.cs](../../test/Kbot.Common.Test/CultureOptionsValidatorTest.cs) — 21
+tests, the first validator coverage in the repo. One test per rule, each asserting that the
+degenerate value is rejected, that the failure message names the option (the startup error is all an
+operator gets) and that a sane value still starts up. `ShippedDefaultsTest` links the service's real
+`appsettings.json` into the test output and runs it through the real `SetupOptions` wiring, so the
+shipped defaults cannot drift out of validity and an unregistered validator is caught too.
+
+Verified: `dotnet build Kbot.sln -warnaserror` clean, 85 tests pass under the default filter (up
+from 64), `csharpier check .` clean. The plan's negative-path smoke test fails at startup with
+exactly `Secrets incomplete: ApiKey must be set, ApiSecret must be set` and `OrderOptions
+incomplete: CryptoPair must be set`; the same run with `MinWaitTime=00:00:00`, `AskMultiplier=100`,
+`MinOrderVolume=0` and a quoted `CryptoPair` names every one of them.
+
+Deliberately not done: the clamping logic → **P1-03** (merged); the duplicated `CryptoPair` / `Fiat`
+config across both services → **P2-08**; `MailOptions` / `MailSecrets` validators → **P4-07**;
+`CultureInfo` / `CountyCode` validation and `stack.env` quoting → **P4-10**. No tests were added for
+`SecretsValidator`, whose file **P1-09** is editing.
+
+Neither `ServiceCollectionExtension.cs` needed a change in the end, so P1-07 is off that file's
+conflict list in [ROADMAP.md](../ROADMAP.md) §6.
+
+Follow-ups unblocked: **P2-08**.
