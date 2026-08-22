@@ -1,6 +1,7 @@
 using Kbot.Common.Api;
 using Kbot.Common.Dtos;
 using Kbot.Common.Enums;
+using Kbot.Common.Helpers;
 using Kbot.Common.Options;
 using Kbot.DcaService.Models;
 using Kbot.DcaService.Options;
@@ -36,6 +37,12 @@ public class DcaWorker(
 
   public string? FixOrderId { get; set; }
 
+  /// <summary>
+  /// The shortest pause after a failed cycle, used only when <see cref="WaitOptions"/> yields a
+  /// non-positive backoff delay.
+  /// </summary>
+  private static readonly TimeSpan MinimumFailureDelay = TimeSpan.FromSeconds(1);
+
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
     logger.LogInformation("DCA Worker running at: {time}", DateTime.UtcNow);
@@ -56,6 +63,71 @@ public class DcaWorker(
       );
     }
 
+    // The guard below is the last line of defence for the whole service: an exception that escapes
+    // a BackgroundService stops the host (BackgroundServiceExceptionBehavior.StopHost), Docker's
+    // `restart: unless-stopped` starts the container again, and a restart that reloads pre-order
+    // state is an opportunity for an unscheduled buy. Faults are logged and paced here instead.
+    var backoff = new ExponentialBackoff(
+      waitOptions.Value.MinWaitTime,
+      waitOptions.Value.MaxWaitTime
+    );
+    var isStateSeeded = false;
+
+    while (!stoppingToken.IsCancellationRequested)
+    {
+      TimeSpan waitTime;
+      try
+      {
+        if (!isStateSeeded)
+        {
+          SeedState();
+          isStateSeeded = true;
+        }
+
+        waitTime = await InvestmentCycle(stoppingToken);
+
+        State.Save();
+        backoff.Reset();
+
+        waitTime = ClampToWaitBounds(waitTime);
+      }
+      catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+      {
+        break;
+      }
+      catch (Exception ex)
+      {
+        waitTime = backoff.Next();
+        // Never a non-positive delay: a WaitOptions of 00:00:00 passes validation today, and that
+        // would turn a persistent fault into a busy loop against Kraken. Rejecting such a
+        // configuration outright is P1-07.
+        if (waitTime <= TimeSpan.Zero)
+        {
+          waitTime = MinimumFailureDelay;
+        }
+        logger.LogError(ex, "Investment cycle failed; retrying in {RetryIn}.", waitTime);
+      }
+
+      logger.LogInformation("Waiting for {waitTime}", waitTime);
+      try
+      {
+        await Task.Delay(waitTime, stoppingToken);
+      }
+      catch (OperationCanceledException)
+      {
+        break;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Loads the persisted state and seeds the top-up window. Called from inside the loop's guard
+  /// because every step can throw — a missing state directory, a top-up day that is not a valid day
+  /// of the month, an empty holiday cache — and before the loop existed such a throw stopped the
+  /// host outright. Retried on the next iteration after a backoff delay.
+  /// </summary>
+  private void SeedState()
+  {
     State = DcaStateHandler.Load();
     var nextTopUpTime = computeService.ComputeNextTopUpTime(
       DateTime.UtcNow,
@@ -68,21 +140,12 @@ public class DcaWorker(
       State,
       balanceOptions.Value.DefaultTopupDayOfMonth
     );
+  }
 
-    while (!stoppingToken.IsCancellationRequested)
-    {
-      var waitTime = await InvestmentCycle(stoppingToken);
-
-      State.Save();
-
-      waitTime =
-        waitTime > waitOptions.Value.MaxWaitTime ? waitOptions.Value.MaxWaitTime : waitTime;
-      waitTime =
-        waitTime < waitOptions.Value.MinWaitTime ? waitOptions.Value.MinWaitTime : waitTime;
-
-      logger.LogInformation("Waiting for {waitTime}", waitTime);
-      await Task.Delay(waitTime, stoppingToken);
-    }
+  private TimeSpan ClampToWaitBounds(TimeSpan waitTime)
+  {
+    waitTime = waitTime > waitOptions.Value.MaxWaitTime ? waitOptions.Value.MaxWaitTime : waitTime;
+    return waitTime < waitOptions.Value.MinWaitTime ? waitOptions.Value.MinWaitTime : waitTime;
   }
 
   internal async Task<TimeSpan> InvestmentCycle(CancellationToken stoppingToken)
