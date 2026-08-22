@@ -42,6 +42,65 @@ prompts and the status board.
    > [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
 7. **PR title** = plan ID + title (e.g. `fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)`).
    PR body: link the plan file, list the finding IDs closed, and state what you verified.
+8. **Close the plan out in the same PR** — a final `docs:` commit that marks it resolved everywhere.
+   See [Closing out a plan](#closing-out-a-plan) for the exact list. This is part of the work, not a
+   follow-up: it means nothing has to be corrected on `review-and-fix` after the merge.
+
+## Closing out a plan
+
+Write these updates on your own branch, before opening the PR, and phrase them in the tense that is
+true **after** the merge ("merged as PR #57"), never "PR open" — otherwise every merge needs a second
+docs pass, and a status board that lags behind the branches is how two agents end up doing the same
+plan twice.
+
+One `docs:` commit, six places:
+
+1. **The plan file.** A `**Status**` row at the top of the header table and a `## Resolution` section
+   at the bottom:
+   ```markdown
+   | **Status** | ✅ **Resolved** — merged into `review-and-fix` via PR #NN |
+   ```
+   ```markdown
+   ---
+
+   ## Resolution
+
+   Merged into `review-and-fix` from `<branch>` as PR #NN. **<findings> are closed**: <one sentence
+   on what is no longer possible>.
+
+   What landed:
+
+   - [<file>](../../<path>) — what changed and why. One bullet per scope item, in the plan's order.
+
+   <Anything the scope implied but did not spell out — say why it was necessary.>
+
+   Tests: [<file>](../../<path>) — what they pin down.
+
+   Verified: `dotnet build Kbot.sln -warnaserror` clean, N tests pass under the default filter,
+   `csharpier check .` clean.
+
+   Deliberately not done: <item> → **<owning plan>**.
+
+   Follow-ups unblocked: **<plan>**.
+   ```
+2. **[../HANDOFF.md](../HANDOFF.md)** — the §7 status board row (Status / PR / Merged), the §4 Wave
+   table row, the §5 prompt summary (`— ✅ merged, nothing to do`), and whatever in §1 or §2 the
+   change makes stale (the fixed-findings count, the "what has been fixed" row, a hard rule that no
+   longer applies).
+3. **[../ROADMAP.md](../ROADMAP.md)** — the wave table row, the finding → plan matrix in §6, and the
+   Wave 1 row of anything this unblocks.
+4. **[../../REVIEW.md](../../REVIEW.md)** — a `> ✅ **Resolved** by …` block under each finding
+   heading the plan closes, naming what changed. Leave the finding text itself alone: it is the
+   historical record of why the work happened, not a live status.
+5. **This file** — the plan index row.
+6. **Stale cross-plan guidance.** This is the part a checklist misses. If merging changed the
+   assumptions other plans were written under — a merge order that no longer holds, a conflict note
+   that now describes code already in `review-and-fix`, a check a later plan was told to add that you
+   just added — fix those sentences too, including inside the §5 agent prompts. Marking your own row
+   done while leaving the next agent a stale instruction is worse than not updating anything.
+
+Do not touch a *different* plan's Status, and do not tick criteria you did not meet — say plainly in
+the Resolution section what you left out and which plan owns it.
 
 ## Plan index
 
@@ -49,7 +108,7 @@ prompts and the status board.
 |---|---|---|---|
 | **Phase 1 — stop the bleeding** ||||
 | P1-01 ✅ | C-1 | Gate the live-trading tests *(resolved — `58c2262`)* | `test/p1-c1-gate-live-trading-tests` |
-| P1-02 | C-2, C-3 | Guard the Kraken sentinel call sites | `fix/p1-c2-c3-guard-worker-sentinels` |
+| P1-02 ✅ | C-2, C-3 | Guard the Kraken sentinel call sites *(resolved — #43)* | `fix/p1-c2-c3-guard-worker-sentinels` |
 | P1-03 | C-4 | Clamp the top-up day, persist state before bookkeeping | `fix/p1-c4-topup-day-clamp-and-state-order` |
 | P1-04 | C-5 | Worker loop resilience and backoff | `fix/p1-c5-worker-loop-resilience` |
 | P1-05 | H-3 | CI: build, test, format gate | `ci/p1-h3-build-test-lint-pipeline` |

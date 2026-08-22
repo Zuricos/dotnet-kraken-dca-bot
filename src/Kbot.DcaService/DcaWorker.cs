@@ -19,7 +19,12 @@ public class DcaWorker(
   IOptions<WaitOptions> waitOptions
 ) : BackgroundService
 {
-  private DcaState State { get; set; } = null!;
+  /// <summary>
+  /// Test seam: <see cref="InvestmentCycle"/> is exercised directly with a stubbed transport, which
+  /// needs the state seeded without going through <see cref="ExecuteAsync"/>. Extracting the
+  /// scheduling core into a pure component is P3-02.
+  /// </summary>
+  internal DcaState State { get; set; } = null!;
 
   // Options accessors for convenience
   private string CryptoPair => orderOptions.Value.CryptoPair;
@@ -34,6 +39,22 @@ public class DcaWorker(
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
     logger.LogInformation("DCA Worker running at: {time}", DateTime.UtcNow);
+    // Stated explicitly because OrderType.Market is the enum default: an omitted OrderOptions__Type
+    // selects it, and a market order ignores the price this worker computes.
+    logger.LogInformation(
+      "Effective order type is {OrderType} for {CryptoPair}, volume {MinOrderVolume} at {AskMultiplier}x ask.",
+      orderOptions.Value.Type,
+      CryptoPair,
+      MinOrderVolume,
+      AskMultiplier
+    );
+    if (orderOptions.Value.Type == OrderType.Market)
+    {
+      logger.LogWarning(
+        "Order type is {OrderType}: orders execute at whatever the book offers, not at the computed price.",
+        OrderType.Market
+      );
+    }
 
     State = DcaStateHandler.Load();
     var nextTopUpTime = computeService.ComputeNextTopUpTime(
@@ -41,6 +62,12 @@ public class DcaWorker(
       balanceOptions.Value.DefaultTopupDayOfMonth
     );
     State = State with { NextTopUpTime = nextTopUpTime };
+    // A freshly loaded state carries TimeSpan.Zero, and the interval computation refuses to
+    // schedule on a non-positive top-up window, so seed it before the first cycle.
+    State = computeService.ComputeTimeUntilNextTopUp(
+      State,
+      balanceOptions.Value.DefaultTopupDayOfMonth
+    );
 
     while (!stoppingToken.IsCancellationRequested)
     {
@@ -58,12 +85,30 @@ public class DcaWorker(
     }
   }
 
-  private async Task<TimeSpan> InvestmentCycle(CancellationToken stoppingToken)
+  internal async Task<TimeSpan> InvestmentCycle(CancellationToken stoppingToken)
   {
     var balance = await krakenClient.CheckBalance();
-    var balanceFiat = balance[FiatCode] - ReserveFiat;
+    if (!balance.TryGetValue(FiatCode, out var fiatBalance))
+    {
+      logger.LogError(
+        "Fiat asset {Fiat} is not in the Kraken balance (keys: {Keys}); skipping this cycle.",
+        FiatCode,
+        string.Join(", ", balance.Keys)
+      );
+      return waitOptions.Value.MaxWaitTime;
+    }
+    var balanceFiat = fiatBalance - ReserveFiat;
 
     var currentCryptoPrice = await krakenClient.GetCurrentCryptoPrice(CryptoPair);
+    if (currentCryptoPrice <= 0)
+    {
+      logger.LogError(
+        "Ticker for {CryptoPair} is unavailable (price {CurrentCryptoPrice}); skipping this cycle.",
+        CryptoPair,
+        currentCryptoPrice
+      );
+      return waitOptions.Value.MaxWaitTime;
+    }
     var askPrice = Math.Round(currentCryptoPrice * AskMultiplier, 1);
     var costForVolume =
       Math.Ceiling(askPrice * MinOrderVolume * InclusiveFeeMultiplier * 100) / 100;
@@ -84,7 +129,7 @@ public class DcaWorker(
       costForVolume,
       State.TimeUntilNextTopUp
     );
-    var nextOrderTime = State.LastInvestmentTime + investmentInterval;
+    var nextOrderTime = AddSaturating(State.LastInvestmentTime, investmentInterval);
 
     if (DateTime.UtcNow < nextOrderTime)
     {
@@ -108,6 +153,14 @@ public class DcaWorker(
     }
     return (nextOrderTime - DateTime.UtcNow) / 2;
   }
+
+  /// <summary>
+  /// Adds an interval to an instant without ever overflowing: the interval computation returns
+  /// <see cref="TimeSpan.MaxValue"/> when there is nothing to schedule, and plain
+  /// <see cref="DateTime"/> addition throws on that.
+  /// </summary>
+  private static DateTime AddSaturating(DateTime instant, TimeSpan interval) =>
+    interval >= DateTime.MaxValue - instant ? DateTime.MaxValue : instant + interval;
 
   private async Task<bool> SendOrder(double btcPrice)
   {

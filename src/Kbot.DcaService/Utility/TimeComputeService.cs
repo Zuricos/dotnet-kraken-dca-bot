@@ -61,8 +61,41 @@ public class TimeComputeService(ILogger<TimeComputeService> logger, HolidayServi
     TimeSpan timeUntilNextTopUp
   )
   {
+    // Every degenerate input is answered with a finite, non-zero interval: dividing by a zero cost
+    // yields Infinity, and TimeSpan.Zero / Infinity is TimeSpan.Zero, which schedules an order
+    // immediately and then once per MinWaitTime.
+    if (timeUntilNextTopUp <= TimeSpan.Zero)
+    {
+      logger.LogWarning(
+        "No top-up window to spread investments over ({TimeUntilNextTopUp}); nothing to schedule.",
+        timeUntilNextTopUp
+      );
+      return TimeSpan.MaxValue;
+    }
+    if (
+      balanceFiat <= 0
+      || costForVolume <= 0
+      || !double.IsFinite(balanceFiat)
+      || !double.IsFinite(costForVolume)
+    )
+    {
+      logger.LogWarning(
+        "Cannot compute an investment interval from balance {BalanceFiat} and cost {CostForVolume}; "
+          + "spreading over the whole top-up window instead.",
+        balanceFiat,
+        costForVolume
+      );
+      return timeUntilNextTopUp;
+    }
+
     var maxNrOfInvestmentsUntilNextTopUp = balanceFiat / costForVolume;
+    if (maxNrOfInvestmentsUntilNextTopUp < 1)
+    {
+      return timeUntilNextTopUp;
+    }
     var currentInvertval = timeUntilNextTopUp / maxNrOfInvestmentsUntilNextTopUp;
-    return currentInvertval;
+    // A count large enough to round the interval down to zero would order at MinWaitTime forever;
+    // the whole window is the safe answer for an input that degenerate.
+    return currentInvertval <= TimeSpan.Zero ? timeUntilNextTopUp : currentInvertval;
   }
 }

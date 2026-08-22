@@ -14,12 +14,13 @@ then follow §8 to produce the next handoff.
 |---|---|
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
-| What has been fixed | **Nothing.** All 64 findings are open. This handoff starts the execution. |
-| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 has landed there (`58c2262`); everything else is still open. |
+| What has been fixed | **3 of 64 findings.** C-1 (P1-01) and C-2 / C-3 (P1-02) are merged. The rest are open. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`) and P1-02 (#43) have landed there; everything else is still open. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
-all in Wave 0 and they are the point of this handoff.
+all in Wave 0 and they are the point of this handoff. C-1, C-2 and C-3 are closed; **C-4 and C-5
+(P1-03, P1-04) are what is left before the bot is safe.**
 
 ---
 
@@ -64,7 +65,7 @@ If you ever see a plan or an older doc say "base on `main`", it is stale — thi
 | # | Plan | Branch | Findings | Effort |
 |---|---|---|---|---|
 | ~~1~~ | ~~[P1-01](plans/p1-01-c1-gate-live-trading-tests.md)~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | **C-1** | S |
-| 2 | [P1-02](plans/p1-02-c2-c3-guard-worker-sentinels.md) | `fix/p1-c2-c3-guard-worker-sentinels` | **C-2, C-3** | S |
+| ~~2~~ | ~~[P1-02](plans/p1-02-c2-c3-guard-worker-sentinels.md)~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | **C-2, C-3** | S |
 | 3 | [P1-03](plans/p1-03-c4-topup-day-clamp-and-state-order.md) | `fix/p1-c4-topup-day-clamp-and-state-order` | **C-4** | S |
 | 4 | [P1-04](plans/p1-04-c5-worker-loop-resilience.md) | `fix/p1-c5-worker-loop-resilience` | **C-5** | S |
 | 5 | [P1-06](plans/p1-06-h4-dockerignore-and-secret-copy.md) | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 | S |
@@ -80,11 +81,14 @@ to have no prerequisites — take it only if capacity is left over.
 
 Development is parallel; **merging** has two ordering constraints, both from shared files:
 
-- `src/Kbot.DcaService/DcaWorker.cs` → merge **P1-02 → P1-03 → P1-04**
-- `src/Kbot.DcaService/Utility/TimeComputeService.cs` → merge **P1-03 → P1-02**
+- `src/Kbot.DcaService/DcaWorker.cs` → merge **P1-02 → P1-03 → P1-04** (P1-02 is merged)
+- `src/Kbot.DcaService/Utility/TimeComputeService.cs` → planned **P1-03 → P1-02**; P1-02 got there
+  first
 
-Combined, a conflict-free merge order for the critical four is: **P1-03 → P1-02 → P1-04** (P1-01 was
-independent and is already merged, which is what makes the suite safe for everyone else).
+The suggested merge order for the critical four was **P1-03 → P1-02 → P1-04**, but P1-02 merged
+first, so **P1-03 and P1-04 build on it** — it is already in `DcaWorker.cs` and
+`TimeComputeService.cs`, and branching from `review-and-fix` picks it up.
+P1-01 was independent and is merged, which is what makes the suite safe for everyone else.
 Each conflict is a small local edit; rebasing is a two-minute job, not a redesign.
 
 ---
@@ -114,6 +118,10 @@ Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
 - Conventional commit messages (test:, fix:, refactor:, ci:, chore:, docs:), one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "test: P1-01 gate the live-trading tests (C-1)", body linking
   docs/plans/p1-01-c1-gate-live-trading-tests.md, listing what you verified, and naming anything
   you deliberately left out.
@@ -121,7 +129,7 @@ Rules:
 </details>
 
 <details>
-<summary><b>P1-02 · Guard the Kraken sentinel call sites (C-2, C-3)</b></summary>
+<summary><b>P1-02 · Guard the Kraken sentinel call sites (C-2, C-3) — ✅ merged, nothing to do</b></summary>
 
 ```
 Work in the repo dotnet-kraken-dca-bot.
@@ -148,6 +156,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)",
   body linking the plan file, listing what you verified, and naming anything left out.
 ```
@@ -168,10 +180,11 @@ Branch: git switch -c fix/p1-c4-topup-day-clamp-and-state-order origin/review-an
 Context you need: DefaultTopupDayOfMonth accepts 1-31, but new DateTime(2026, 4, 31) throws. The
 throw happens AFTER a successful order is sent and BEFORE the state is persisted, so the host dies,
 Docker restarts it, the pre-order state is reloaded and it buys again. You are clamping the day and
-reordering the persist. Recommended merge order puts you first among the DcaWorker.cs plans.
+reordering the persist.
 
-Conflict note: P1-02 also edits DcaWorker.cs and TimeComputeService.cs; P1-04 also edits
-DcaWorker.cs. Keep edits local and minimal.
+Conflict note: P1-02 is merged, so review-and-fix already carries its guards in DcaWorker.cs and
+TimeComputeService.cs — the top of InvestmentCycle and ComputeNextInvestmentInterval. Leave them
+alone. P1-04 also edits DcaWorker.cs. Keep edits local and minimal.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
@@ -179,6 +192,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-03 clamp the top-up day and persist state before
   bookkeeping (C-4)", body linking the plan file, listing what you verified, and naming anything
   left out.
@@ -203,8 +220,8 @@ state is an opportunity for an unscheduled buy. You are adding try/catch + expon
 both worker loops (DCA and mail) so transient faults are survived rather than escalated. You are
 NOT fixing the individual throws — other plans own those.
 
-Conflict note: P1-02 and P1-03 also edit src/Kbot.DcaService/DcaWorker.cs; recommended merge order
-puts you last of the three. P2-07 also edits DailyReporter.cs.
+Conflict note: P1-02 is merged into src/Kbot.DcaService/DcaWorker.cs and P1-03 also edits it; you
+merge last of the three. P2-07 also edits DailyReporter.cs.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
@@ -212,6 +229,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-04 worker loop resilience and backoff (C-5)", body
   linking the plan file, listing what you verified, and naming anything left out.
 ```
@@ -239,6 +260,10 @@ Rules:
 - `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the docker build.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-06 move .dockerignore to the repo root and stop copying
   secrets.json (H-4)", body linking the plan file and listing what you verified.
 ```
@@ -264,8 +289,8 @@ tightening the validators, adding safe defaults, and unit-testing every rule (th
 validator coverage today, which is how this survived).
 
 Conflict note: P1-03 also edits BalanceOptions.cs — if it is already merged, leave its
-DefaultTopupDayOfMonth rule alone. P1-02 adds an Enum.IsDefined check on OrderOptions.Type; keep
-one copy.
+DefaultTopupDayOfMonth rule alone. P1-02 already added the Enum.IsDefined check on
+OrderOptions.Type; do not add a second one.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
@@ -273,6 +298,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-07 tighten the options validators (H-10)", body linking
   the plan file, listing what you verified, and naming anything left out.
 ```
@@ -305,6 +334,10 @@ Rules:
 - `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-08 remove the committed DB password and published
   Postgres port (H-11)", body linking the plan file and listing what you verified.
 ```
@@ -335,6 +368,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-09 stop logging the API secret (M-16)", body linking the
   plan file and listing what you verified.
 ```
@@ -367,6 +404,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the de-DE / fr-FR runs.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P2-02 pin InvariantCulture on every wire value (H-1)", body
   linking the plan file and listing what you verified.
 ```
@@ -387,18 +428,24 @@ Rules:
 - Tests pass under the safe filter
   (applied by default through `.runsettings` since P1-01 landed).
 - PR body links the plan file, lists what was verified, and names anything deliberately left out.
-- Nothing outside the plan's scope changed.
+- Nothing outside the plan's scope changed — **except the close-out docs, which every PR carries**:
+  the plan file's Status row and Resolution section, the §7 status board row, the §4 and §5 entries,
+  the ROADMAP tables, the REVIEW.md finding callout, the plan index, and any cross-plan guidance the
+  merge makes stale. The exact list is
+  [Closing out a plan](plans/README.md#closing-out-a-plan). Write it in the tense that is true after
+  the merge, so `review-and-fix` never needs a follow-up docs commit.
 
 ---
 
 ## 7. Status board
 
-Update this as work lands. `—` = not started.
+Every PR updates its own row, on its own branch, before it is opened — see
+[Closing out a plan](plans/README.md#closing-out-a-plan). `—` = not started.
 
 | Plan | Branch | Status | PR | Merged |
 |---|---|---|---|---|
 | P1-01 | `test/p1-c1-gate-live-trading-tests` | ✅ resolved | #42 | `58c2262` (2026-08-22) |
-| P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | — | | |
+| P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | ✅ resolved | #43 | via #43 |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | — | | |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | — | | |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | — | | |
@@ -408,6 +455,7 @@ Update this as work lands. `—` = not started.
 | P2-02 | `fix/p2-h1-invariant-culture` | — | | |
 
 **Milestone M1 ("safe to run") is reached when P1-01, P1-02, P1-03 and P1-04 are all merged.**
+P1-01 and P1-02 are merged; **P1-03 and P1-04 are the two still to be written.**
 
 ---
 
@@ -419,7 +467,7 @@ Each merge unlocks specific plans. From [ROADMAP.md](ROADMAP.md) §4:
 |---|---|
 | ✅ P1-01 *(merged)* | **P1-05** (`ci/p1-h3-build-test-lint-pipeline`) — **now ready**; CI could not be wired up before the tests were safe |
 | P1-03 | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) |
-| P1-02 **and** P1-04 | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review |
+| ✅ P1-02 *(merged)* **and** P1-04 | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review; now waiting on P1-04 alone |
 | P1-03 **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) |
 | P1-08 | **P4-06** (`fix/p4-m17-m21-startup-and-healthchecks`) |
 | P1-05 | **P2-09** (`ci/p2-workflow-hardening`) |
@@ -442,7 +490,8 @@ Paste this into a new session that has no context at all:
 Work in the repo dotnet-kraken-dca-bot. Read docs/HANDOFF.md — it is a self-contained handoff for
 the first wave of remediation work on this repository. Follow it: check the status board in §7 to
 see what is still open, then either dispatch the ready-to-paste agent prompts in §5, or implement
-one plan yourself.
+one plan yourself. Whichever you do, the plan's PR also carries its own close-out docs — see
+"Closing out a plan" in docs/plans/README.md.
 
 Two hard rules before you touch anything: (1) `dotnet test Kbot.sln` places real buy orders on live
 Kraken and sends real email only if you opt in with KBOT_ALLOW_LIVE_TRADING=1 (P1-01 is merged) — never do; (2) each plan in

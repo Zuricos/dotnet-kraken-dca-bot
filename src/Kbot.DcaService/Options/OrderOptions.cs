@@ -20,6 +20,12 @@ public class OrderOptionsValidator : IValidateOptions<OrderOptions>
   {
     List<string> vor = [];
 
+    if (!Enum.IsDefined(options.Type))
+    {
+      vor.Add(
+        $"Type must be one of {string.Join(", ", Enum.GetNames<OrderType>())} (was {(int)options.Type})"
+      );
+    }
     if (options.Fee < 0)
     {
       vor.Add("Fee must be greater than or equal to 0");
