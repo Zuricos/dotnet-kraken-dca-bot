@@ -49,7 +49,7 @@ prompts and the status board.
 |---|---|---|---|
 | **Phase 1 — stop the bleeding** ||||
 | P1-01 ✅ | C-1 | Gate the live-trading tests *(resolved — `58c2262`)* | `test/p1-c1-gate-live-trading-tests` |
-| P1-02 | C-2, C-3 | Guard the Kraken sentinel call sites | `fix/p1-c2-c3-guard-worker-sentinels` |
+| P1-02 ✅ | C-2, C-3 | Guard the Kraken sentinel call sites *(resolved — #43)* | `fix/p1-c2-c3-guard-worker-sentinels` |
 | P1-03 | C-4 | Clamp the top-up day, persist state before bookkeeping | `fix/p1-c4-topup-day-clamp-and-state-order` |
 | P1-04 | C-5 | Worker loop resilience and backoff | `fix/p1-c5-worker-loop-resilience` |
 | P1-05 | H-3 | CI: build, test, format gate | `ci/p1-h3-build-test-lint-pipeline` |

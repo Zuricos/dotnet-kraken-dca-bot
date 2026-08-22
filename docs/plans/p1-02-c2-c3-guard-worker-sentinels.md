@@ -2,6 +2,7 @@
 
 |  |  |
 |---|---|
+| **Status** | ✅ **Resolved** — merged into `review-and-fix` via PR #43 |
 | **Findings** | C-2, C-3 |
 | **Phase** | 1 — Stop the bleeding |
 | **Branch** | `fix/p1-c2-c3-guard-worker-sentinels` |
@@ -101,3 +102,48 @@ dotnet build Kbot.sln -warnaserror
 dotnet test Kbot.sln --filter "TestCategory!=LiveExchange&TestCategory!=LiveApi"
 dotnet csharpier check .
 ```
+
+---
+
+## Resolution
+
+Merged into `review-and-fix` from `fix/p1-c2-c3-guard-worker-sentinels` as PR #43.
+**C-2 and C-3 are closed**: no cycle proceeds on a sentinel any more.
+
+What landed:
+
+- [KrakenClient.GetCurrentCryptoPrice](../../src/Kbot.Common/Api/KrakenClient.cs#L43) takes the
+  single ticker entry by value instead of indexing by the requested pair name, so Kraken echoing
+  `XXBTZUSD` for an `XBTUSD` request no longer throws into the `0.0` path. Every failure path names
+  the pair, and an unexpected entry count logs the returned keys. The `0.0` sentinel stays for P2-01.
+- [DcaWorker.InvestmentCycle](../../src/Kbot.DcaService/DcaWorker.cs#L88) guards the balance
+  lookup and the price before any arithmetic, each returning `MaxWaitTime`.
+- [TimeComputeService.ComputeNextInvestmentInterval](../../src/Kbot.DcaService/Utility/TimeComputeService.cs#L58)
+  refuses a non-positive or non-finite balance or cost, returns `TimeSpan.MaxValue` for a
+  non-positive top-up window, and floors an interval that would round down to zero ticks.
+- [OrderOptionsValidator](../../src/Kbot.DcaService/Options/OrderOptions.cs#L17) rejects an
+  out-of-range `Type`, and the worker logs the effective order type once at startup, warning when it
+  is `Market`.
+
+Two knock-on changes this scope implies but the plan did not spell out:
+
+- `TimeSpan.MaxValue` overflows `State.LastInvestmentTime + investmentInterval`, so that addition
+  saturates at `DateTime.MaxValue` and the caller's clamp turns it into `MaxWaitTime`.
+- A freshly loaded state carries `TimeUntilNextTopUp = TimeSpan.Zero`, which the new
+  non-positive-window guard would otherwise turn into *never invest*, so `ExecuteAsync` seeds it
+  before the first cycle.
+
+Tests (all hermetic, over a stubbed `HttpMessageHandler` — no credentials, no network):
+[InvestmentCycleGuardTest.cs](../../test/Kbot.DcaService.Test/InvestmentCycleGuardTest.cs) drives one
+cycle per failure mode plus a healthy counter-test,
+[InvestmentIntervalTest.cs](../../test/Kbot.DcaService.Test/InvestmentIntervalTest.cs) covers the
+degenerate-input matrix, and
+[KrakenApiRequestShapeTest.cs](../../test/Kbot.Common.Test/KrakenApiRequestShapeTest.cs) gained the
+canonical-pair-name parse. `DcaWorker.State` and `InvestmentCycle` became `internal` (plus
+`InternalsVisibleTo`) to make that possible; the real seam extraction is P3-01/P3-02.
+
+Verified: `dotnet build Kbot.sln -warnaserror` clean, 40 tests pass under the default filter,
+`csharpier check .` clean.
+
+Follow-ups: **P2-01** now waits on P1-04 alone. **P1-03** and **P1-04** branch from
+`review-and-fix` after this, since it reached `DcaWorker.cs` and `TimeComputeService.cs` first.

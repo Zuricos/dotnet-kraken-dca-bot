@@ -116,6 +116,11 @@ The DCA worker uses `AskMultiplier = 1.00001` from `stack.env` — *above* ask �
 
 ### C-2 · A failed ticker call returns `0.0`, which the worker trades on
 
+> ✅ **Resolved** by [P1-02](docs/plans/p1-02-c2-c3-guard-worker-sentinels.md), merged as PR #43. The ticker
+> entry is read by value rather than by the requested pair name, the worker skips the cycle on a
+> non-positive price, and the interval computation can no longer yield `Zero`, `Infinity` or `NaN`.
+> The `0.0` sentinel itself survives until P2-01 replaces the protocol.
+
 **Files:** [KrakenClient.cs:52,66](src/Kbot.Common/Api/KrakenClient.cs#L52) · [DcaWorker.cs:66-69](src/Kbot.DcaService/DcaWorker.cs#L66-L69) · [TimeComputeService.cs:64-65](src/Kbot.DcaService/Utility/TimeComputeService.cs#L64-L65)
 
 `GetCurrentCryptoPrice` returns `0.0` on *every* error path — HTTP failure, Kraken error array, and notably `response.Result![pair]` throwing `KeyNotFoundException` when Kraken returns its canonical pair name instead of the requested alias (request `XBTUSD`, get key `XXBTZUSD`). `DcaWorker` never checks the result. The cascade:
@@ -152,6 +157,10 @@ var tickerInfo = response.Result!.Values.Single().Parse();
 ---
 
 ### C-3 · A failed balance call returns `[]`, and the worker indexes it directly
+
+> ✅ **Resolved** by [P1-02](docs/plans/p1-02-c2-c3-guard-worker-sentinels.md), merged as PR #43. The fiat
+> balance is looked up with `TryGetValue`; a missing asset logs the available keys and costs one
+> skipped cycle instead of stopping the host.
 
 **Files:** [KrakenClient.cs:23,36](src/Kbot.Common/Api/KrakenClient.cs#L23) · [DcaWorker.cs:64](src/Kbot.DcaService/DcaWorker.cs#L64)
 

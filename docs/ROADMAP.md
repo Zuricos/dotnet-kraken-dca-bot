@@ -140,7 +140,7 @@ merge order matters (see the note below) but their *development* does not.
 | Plan | Branch | Findings |
 |---|---|---|
 | ~~P1-01~~ ✅ merged | `test/p1-c1-gate-live-trading-tests` | C-1 |
-| P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | C-2, C-3 |
+| ~~P1-02~~ ✅ merged | `fix/p1-c2-c3-guard-worker-sentinels` | C-2, C-3 |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | C-4 |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | C-5 |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | H-4 |
@@ -149,11 +149,11 @@ merge order matters (see the note below) but their *development* does not.
 | P1-09 | `fix/p1-m16-redact-secrets-in-logs` | M-16 |
 | P2-02 | `fix/p2-h1-invariant-culture` | H-1 |
 
-> **`DcaWorker.cs` merge order: P1-02 → P1-03 → P1-04.** Each is a small, local edit; whoever merges
-> second rebases. If you would rather avoid it entirely, run them strictly in that sequence and have
-> one agent hand off to the next.
+> **`DcaWorker.cs` merge order: P1-02 → P1-03 → P1-04.** P1-02 is merged, so P1-03 and P1-04 build
+> on it. Each is a small, local edit; rebasing is a two-minute job.
 >
-> **`TimeComputeService.cs`** is touched by P1-02 (divisor guard) and P1-03 (date clamp) — same note.
+> **`TimeComputeService.cs`** is touched by P1-02 (divisor guard, merged) and P1-03 (date clamp) —
+> same note.
 
 ### Wave 1 — unlocked by Wave 0
 
@@ -161,7 +161,7 @@ merge order matters (see the note below) but their *development* does not.
 |---|---|---|
 | P1-05 | P1-01 | `ci/p1-h3-build-test-lint-pipeline` |
 | P1-10 | P1-03 | `test/p1-h12-deterministic-timecompute-tests` |
-| P2-01 | P1-02 + P1-04 | `refactor/p2-i1-kraken-result-protocol` |
+| P2-01 | ✅ P1-02 + P1-04 (waiting on P1-04) | `refactor/p2-i1-kraken-result-protocol` |
 | P2-03 | P2-02 | `refactor/p2-h2-decimal-money` |
 | P2-08 | P1-03 + P1-07 | `refactor/p2-i5-shared-trading-options` |
 | P2-09 | P1-05 | `ci/p2-workflow-hardening` |
@@ -217,8 +217,8 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | Finding | Plan | Finding | Plan |
 |---|---|---|---|
 | C-1 ✅ | P1-01 *(merged)* | M-1 | P4-08 |
-| C-2 | P1-02 (→ P2-01) | M-2 | P4-09 |
-| C-3 | P1-02 (→ P2-01) | M-3 | P2-05 |
+| C-2 ✅ | P1-02 *(merged)* (→ P2-01) | M-2 | P4-09 |
+| C-3 ✅ | P1-02 *(merged)* (→ P2-01) | M-3 | P2-05 |
 | C-4 | P1-03 | M-4 | P4-09 |
 | C-5 | P1-04 | M-5 | P4-09 |
 | H-1 | P2-02 | M-6 | P4-09 |
