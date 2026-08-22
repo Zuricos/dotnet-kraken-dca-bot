@@ -72,7 +72,12 @@ public class TimeComputeService(ILogger<TimeComputeService> logger, HolidayServi
       );
       return TimeSpan.MaxValue;
     }
-    if (balanceFiat <= 0 || costForVolume <= 0)
+    if (
+      balanceFiat <= 0
+      || costForVolume <= 0
+      || !double.IsFinite(balanceFiat)
+      || !double.IsFinite(costForVolume)
+    )
     {
       logger.LogWarning(
         "Cannot compute an investment interval from balance {BalanceFiat} and cost {CostForVolume}; "
@@ -89,6 +94,8 @@ public class TimeComputeService(ILogger<TimeComputeService> logger, HolidayServi
       return timeUntilNextTopUp;
     }
     var currentInvertval = timeUntilNextTopUp / maxNrOfInvestmentsUntilNextTopUp;
-    return currentInvertval;
+    // A count large enough to round the interval down to zero would order at MinWaitTime forever;
+    // the whole window is the safe answer for an input that degenerate.
+    return currentInvertval <= TimeSpan.Zero ? timeUntilNextTopUp : currentInvertval;
   }
 }

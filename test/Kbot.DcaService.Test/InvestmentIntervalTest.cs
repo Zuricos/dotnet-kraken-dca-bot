@@ -43,6 +43,13 @@ public class InvestmentIntervalTest
   [DataRow(900.0, 0.0)]
   [DataRow(900.0, -1.0)]
   [DataRow(900.0, 2.5)]
+  // And the inputs no arithmetic survives: not-a-number, infinity, and a cost so small that the
+  // interval would round down to zero ticks.
+  [DataRow(double.NaN, 2.5)]
+  [DataRow(900.0, double.NaN)]
+  [DataRow(double.PositiveInfinity, 2.5)]
+  [DataRow(900.0, double.PositiveInfinity)]
+  [DataRow(double.MaxValue, double.Epsilon)]
   public void ComputeNextInvestmentInterval_IsAlwaysFiniteAndNonZero(
     double balanceFiat,
     double costForVolume
