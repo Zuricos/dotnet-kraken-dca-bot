@@ -118,6 +118,10 @@ Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
 - Conventional commit messages (test:, fix:, refactor:, ci:, chore:, docs:), one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "test: P1-01 gate the live-trading tests (C-1)", body linking
   docs/plans/p1-01-c1-gate-live-trading-tests.md, listing what you verified, and naming anything
   you deliberately left out.
@@ -152,6 +156,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)",
   body linking the plan file, listing what you verified, and naming anything left out.
 ```
@@ -184,6 +192,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-03 clamp the top-up day and persist state before
   bookkeeping (C-4)", body linking the plan file, listing what you verified, and naming anything
   left out.
@@ -217,6 +229,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-04 worker loop resilience and backoff (C-5)", body
   linking the plan file, listing what you verified, and naming anything left out.
 ```
@@ -244,6 +260,10 @@ Rules:
 - `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the docker build.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-06 move .dockerignore to the repo root and stop copying
   secrets.json (H-4)", body linking the plan file and listing what you verified.
 ```
@@ -278,6 +298,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-07 tighten the options validators (H-10)", body linking
   the plan file, listing what you verified, and naming anything left out.
 ```
@@ -310,6 +334,10 @@ Rules:
 - `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-08 remove the committed DB password and published
   Postgres port (H-11)", body linking the plan file and listing what you verified.
 ```
@@ -340,6 +368,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P1-09 stop logging the API secret (M-16)", body linking the
   plan file and listing what you verified.
 ```
@@ -372,6 +404,10 @@ Rules:
   tests only.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the de-DE / fr-FR runs.
+- Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
+  file's Status row and Resolution section, the §7 status board row, the ROADMAP tables, the
+  REVIEW.md finding callout and any cross-plan note your change makes stale. The exact list is
+  "Closing out a plan" in docs/plans/README.md. Phrase it as already merged.
 - Then open a PR into review-and-fix titled "fix: P2-02 pin InvariantCulture on every wire value (H-1)", body
   linking the plan file and listing what you verified.
 ```
@@ -392,13 +428,19 @@ Rules:
 - Tests pass under the safe filter
   (applied by default through `.runsettings` since P1-01 landed).
 - PR body links the plan file, lists what was verified, and names anything deliberately left out.
-- Nothing outside the plan's scope changed.
+- Nothing outside the plan's scope changed — **except the close-out docs, which every PR carries**:
+  the plan file's Status row and Resolution section, the §7 status board row, the §4 and §5 entries,
+  the ROADMAP tables, the REVIEW.md finding callout, the plan index, and any cross-plan guidance the
+  merge makes stale. The exact list is
+  [Closing out a plan](plans/README.md#closing-out-a-plan). Write it in the tense that is true after
+  the merge, so `review-and-fix` never needs a follow-up docs commit.
 
 ---
 
 ## 7. Status board
 
-Update this as work lands. `—` = not started.
+Every PR updates its own row, on its own branch, before it is opened — see
+[Closing out a plan](plans/README.md#closing-out-a-plan). `—` = not started.
 
 | Plan | Branch | Status | PR | Merged |
 |---|---|---|---|---|
@@ -448,7 +490,8 @@ Paste this into a new session that has no context at all:
 Work in the repo dotnet-kraken-dca-bot. Read docs/HANDOFF.md — it is a self-contained handoff for
 the first wave of remediation work on this repository. Follow it: check the status board in §7 to
 see what is still open, then either dispatch the ready-to-paste agent prompts in §5, or implement
-one plan yourself.
+one plan yourself. Whichever you do, the plan's PR also carries its own close-out docs — see
+"Closing out a plan" in docs/plans/README.md.
 
 Two hard rules before you touch anything: (1) `dotnet test Kbot.sln` places real buy orders on live
 Kraken and sends real email only if you opt in with KBOT_ALLOW_LIVE_TRADING=1 (P1-01 is merged) — never do; (2) each plan in

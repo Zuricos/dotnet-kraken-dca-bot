@@ -25,6 +25,11 @@ more urgent than any of them.
 - Branch from **`review-and-fix`** and PR back into it; `main` stays untouched until the maintainer
   merges the accumulated work. The working protocol is in [plans/README.md](plans/README.md), the
   base-branch details in [HANDOFF.md](HANDOFF.md) §3.
+- **Every PR closes its own plan out**: the tables here, the status board and the REVIEW.md finding
+  are updated on the plan's branch, so this roadmap is accurate the moment a PR merges. The list of
+  what to touch is [Closing out a plan](plans/README.md#closing-out-a-plan). If a merge invalidates
+  guidance written for another plan — a merge order, a conflict note — that gets fixed in the same
+  commit.
 
 ---
 
