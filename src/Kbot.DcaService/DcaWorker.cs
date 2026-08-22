@@ -19,7 +19,12 @@ public class DcaWorker(
   IOptions<WaitOptions> waitOptions
 ) : BackgroundService
 {
-  private DcaState State { get; set; } = null!;
+  /// <summary>
+  /// Test seam: <see cref="InvestmentCycle"/> is exercised directly with a stubbed transport, which
+  /// needs the state seeded without going through <see cref="ExecuteAsync"/>. Extracting the
+  /// scheduling core into a pure component is P3-02.
+  /// </summary>
+  internal DcaState State { get; set; } = null!;
 
   // Options accessors for convenience
   private string CryptoPair => orderOptions.Value.CryptoPair;
@@ -80,7 +85,7 @@ public class DcaWorker(
     }
   }
 
-  private async Task<TimeSpan> InvestmentCycle(CancellationToken stoppingToken)
+  internal async Task<TimeSpan> InvestmentCycle(CancellationToken stoppingToken)
   {
     var balance = await krakenClient.CheckBalance();
     if (!balance.TryGetValue(FiatCode, out var fiatBalance))

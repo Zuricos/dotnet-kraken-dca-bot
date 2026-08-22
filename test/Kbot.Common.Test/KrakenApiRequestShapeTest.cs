@@ -46,6 +46,32 @@ public class KrakenApiRequestShapeTest
     }
   );
 
+  /// <summary>
+  /// What Kraken actually answers for the alias XBTUSD: the result is keyed by the canonical pair
+  /// name, which the client used to index by the requested name (C-2).
+  /// </summary>
+  private static readonly string CanonicalTickerResponse = JsonSerializer.Serialize(
+    new
+    {
+      error = Array.Empty<string>(),
+      result = new Dictionary<string, object>
+      {
+        ["XXBTZUSD"] = new
+        {
+          a = new[] { "50123.40000", "1", "1.000" },
+          b = new[] { "50100.10000", "2", "2.000" },
+          c = new[] { "50110.00000", "0.00100000" },
+          v = new[] { "10.00000000", "20.00000000" },
+          p = new[] { "50000.00000", "50050.00000" },
+          t = new[] { 100, 200 },
+          l = new[] { "49000.00000", "48000.00000" },
+          h = new[] { "51000.00000", "52000.00000" },
+          o = "50000.00000",
+        },
+      },
+    }
+  );
+
   private static readonly string AddOrderResponse = JsonSerializer.Serialize(
     new
     {
@@ -153,6 +179,43 @@ public class KrakenApiRequestShapeTest
     // Only that a price came back, not its value: the parse still runs under the current culture,
     // and pinning it to invariant culture is P2-02.
     Assert.AreNotEqual(0.0, price, "The ask price should have been parsed off the response.");
+  }
+
+  [TestMethod]
+  public async Task GetCurrentCryptoPrice_ParsesAResultKeyedByTheCanonicalPairName()
+  {
+    var handler = new RecordingHandler(CanonicalTickerResponse);
+    var api = new KrakenApi(
+      NullLogger<KrakenApi>.Instance,
+      MsOptions.Create(new Secrets()),
+      handler
+    );
+    using var client = new KrakenClient(NullLogger<KrakenClient>.Instance, api);
+
+    var price = await client.GetCurrentCryptoPrice("XBTUSD");
+
+    Assert.AreEqual("pair=XBTUSD", handler.Request!.RequestUri!.Query.TrimStart('?'));
+    Assert.AreNotEqual(
+      0.0,
+      price,
+      "A result keyed XXBTZUSD for a requested XBTUSD must still yield a price."
+    );
+  }
+
+  [TestMethod]
+  public async Task GetCurrentCryptoPrice_ReportsNoPriceWhenTheResultIsEmpty()
+  {
+    var handler = new RecordingHandler("""{"error":[],"result":{}}""");
+    var api = new KrakenApi(
+      NullLogger<KrakenApi>.Instance,
+      MsOptions.Create(new Secrets()),
+      handler
+    );
+    using var client = new KrakenClient(NullLogger<KrakenClient>.Instance, api);
+
+    // Still the 0.0 sentinel — replacing it with a typed result is P2-01. What matters here is that
+    // an unusable response is reported, not thrown, and that the worker refuses to trade on it.
+    Assert.AreEqual(0.0, await client.GetCurrentCryptoPrice("XBTUSD"));
   }
 
   private static string ExpectedSignature(string urlPath, string jsonBody, long nonce)
