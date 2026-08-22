@@ -97,43 +97,58 @@ What landed:
 - [OrderOptions.cs](../../src/Kbot.DcaService/Options/OrderOptions.cs) — `MinOrderVolume > 0`;
   `AskMultiplier` bounded to the sanity band `[0.5, 1.5]`, because it multiplies the ask *price* and
   the typo `100` for `1.0001` would bid a hundred times the ask; `Fee` bounded to `[0, 100]` as the
-  percentage it is; `CryptoPair` matched against `^[A-Z0-9]{5,12}$`. Every `double` is additionally
+  percentage it is; `CryptoPair` matched against `^[A-Z0-9]{4,16}$`. Every `double` is additionally
   checked with `double.IsFinite`: a `TypeConverter` parses `"Infinity"` and `"NaN"`, and an infinite
   cost is as degenerate as a zero one. P1-02's `Enum.IsDefined(options.Type)` check was already
-  there and was kept as the single copy.
+  there and was kept as the single copy. An `AskMultiplier` below 1 is legal but warned about: it
+  places a resting limit buy under the market, and `SendOrder` neither sets an expiry nor checks for
+  a fill, so the schedule advances on acceptance and DCA can stop silently with the fiat locked in
+  an open order.
 - [WaitOptions.cs](../../src/Kbot.DcaService/Options/WaitOptions.cs) — `MinWaitTime` must be at least
-  one second, `MaxWaitTime` greater than zero, `MinWaitTime <= MaxWaitTime` unchanged. The plan's
-  separate `> TimeSpan.Zero` rule is subsumed by the one-second floor deliberately: two messages for
-  `00:00:00` only make the startup error harder to read, and the tests still prove zero, negative
-  and sub-second values are all rejected. A `MinWaitTime` under five seconds is logged as a warning
-  rather than refused, which is why the validator now takes an `ILogger`.
+  one second, `MaxWaitTime` between zero and seven days, `MinWaitTime <= MaxWaitTime` unchanged. The
+  plan's separate `> TimeSpan.Zero` rule is subsumed by the one-second floor deliberately: two
+  messages for `00:00:00` only make the startup error harder to read, and the tests still prove
+  zero, negative and sub-second values are all rejected. A `MinWaitTime` under five seconds is
+  logged as a warning rather than refused, which is why the validator now takes an `ILogger`. The
+  upper bound on `MaxWaitTime` is there because that value is the ceiling of every `Task.Delay` the
+  loop performs, and `Task.Delay` throws above ~49.7 days from a call site P1-04's catch-all does
+  not cover — the host would stop and Docker would crash-loop it.
 - [BalanceOptions.cs](../../src/Kbot.DcaService/Options/BalanceOptions.cs) — untouched.
   `ReserveFiat >= 0` is correct (reserving nothing is the default) and P1-03 owns
   `DefaultTopupDayOfMonth`.
 - [CultureOptions.cs](../../src/Kbot.Common/Options/CultureOptions.cs) — untouched, as planned;
   M-15's `CultureInfo` / `CountyCode` existence checks belong to P4-10.
-- [appsettings.json](../../src/Kbot.DcaService/appsettings.json) — `OrderOptions`, `BalanceOptions`,
-  `WaitOptions` **and** `CultureOptions` now carry the defaults from `docker/stack.env`.
-  `CryptoPair` deliberately has none: which asset the bot buys must stay a deliberate choice.
+- [appsettings.json](../../src/Kbot.DcaService/appsettings.json) — `OrderOptions`,
+  `BalanceOptions`, `WaitOptions` **and** `CultureOptions` now carry defaults. Every value is the one
+  in `docker/stack.env` **except `MinWaitTime`, which ships `00:00:30` where `stack.env` has
+  `00:00:10`**: the shipped default is deliberately the more conservative of the two, it is the value
+  this plan's scope section specifies, and Compose deployments are unaffected because the environment
+  wins over `appsettings.json`. Nothing in the build compares the two files, so the difference is
+  stated here on purpose rather than left to be discovered. `CryptoPair` deliberately has no default
+  at all: which asset the bot buys must stay a deliberate choice.
 - [DcaWorker.cs](../../src/Kbot.DcaService/DcaWorker.cs) — comment only. P1-04's non-positive-delay
   floor stays as defence in depth; it no longer describes this plan as the missing fix.
 
 `CultureOptions` got defaults although the plan's snippet listed only three sections: the acceptance
 criterion "starting with only `appsettings.json` fails only on `CryptoPair` and `Secrets`" cannot
-hold while the culture section is empty. The cost is that a partial configuration which sets
-`CryptoPair` but omits `CultureOptions` now gets `CHF` silently — and a wrong `Fiat` surfaces as
-"not enough balance", not as a wrong buy.
+hold while the culture section is empty. This weakens an existing fail-fast, so the cost is worth
+stating precisely: an operator who sets `CryptoPair=XBTEUR` but omits `CultureOptions` gets `CHF`.
+`DcaWorker.InvestmentCycle` then looks the balance up by a `Fiat` code that is simply absent from
+Kraken's balance dictionary, logs an error and returns `MaxWaitTime` — an hourly no-op forever, not
+a wrong buy. The direction is fail-safe, but it is silent apart from the log. Whether `Fiat` should
+be a required, deliberate choice like `CryptoPair` belongs to **P2-08**, which unifies both across
+the two services.
 
 Tests: [OptionsValidatorTest.cs](../../test/Kbot.DcaService.Test/OptionsValidatorTest.cs),
 [ShippedDefaultsTest.cs](../../test/Kbot.DcaService.Test/ShippedDefaultsTest.cs) and
-[CultureOptionsValidatorTest.cs](../../test/Kbot.Common.Test/CultureOptionsValidatorTest.cs) — 21
+[CultureOptionsValidatorTest.cs](../../test/Kbot.Common.Test/CultureOptionsValidatorTest.cs) — 25
 tests, the first validator coverage in the repo. One test per rule, each asserting that the
 degenerate value is rejected, that the failure message names the option (the startup error is all an
 operator gets) and that a sane value still starts up. `ShippedDefaultsTest` links the service's real
 `appsettings.json` into the test output and runs it through the real `SetupOptions` wiring, so the
 shipped defaults cannot drift out of validity and an unregistered validator is caught too.
 
-Verified: `dotnet build Kbot.sln -warnaserror` clean, 85 tests pass under the default filter (up
+Verified: `dotnet build Kbot.sln -warnaserror` clean, 89 tests pass under the default filter (up
 from 64), `csharpier check .` clean. The plan's negative-path smoke test fails at startup with
 exactly `Secrets incomplete: ApiKey must be set, ApiSecret must be set` and `OrderOptions
 incomplete: CryptoPair must be set`; the same run with `MinWaitTime=00:00:00`, `AskMultiplier=100`,
@@ -146,5 +161,26 @@ config across both services → **P2-08**; `MailOptions` / `MailSecrets` validat
 
 Neither `ServiceCollectionExtension.cs` needed a change in the end, so P1-07 is off that file's
 conflict list in [ROADMAP.md](../ROADMAP.md) §6.
+
+Review round 1 (independent agent, CHANGES REQUESTED, no must-fixes) changed four things, all of
+them in this PR:
+
+1. `^[A-Z0-9]{5,12}$` → `{4,16}`. Checked against Kraken's live `AssetPairs` list, the original
+   bounds rejected 17 pairs it actually trades — 15 four-character ones (`SUSD`, `AEUR`, …) and
+   `CHILLHOUSEEUR` / `CHILLHOUSEUSD` at thirteen — so a legitimate configuration could not start.
+   The character class survived the same check: no current altname has a lower-case letter or
+   punctuation. The upper bound was also the one bound with no test, which is why the wrong value
+   shipped; both edges are now pinned.
+2. An upper bound on `MaxWaitTime` (see above). The most valuable of the four: it closes the same
+   class of defect this plan exists for, one the plan itself did not name.
+3. The `AskMultiplier < 1` warning (see above). The band stays `[0.5, 1.5]`, because the test
+   project's `appsettings.json` uses `0.5` on purpose so the `LiveExchange` order cannot fill.
+4. The `MinWaitTime` default is documented as deliberately differing from `stack.env` instead of
+   being claimed identical to it, and the `Fiat` failure mode is described correctly (an hourly
+   no-op, not "not enough balance").
+
+Both declared judgement calls were reviewed and kept. Left with their owning plans, as flagged in
+review: a finiteness check on `BalanceOptions.ReserveFiat` and whether `Fiat` should be required
+(**P2-08**), and real pair resolution (**P2-05**).
 
 Follow-ups unblocked: **P2-08**.

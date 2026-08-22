@@ -429,12 +429,15 @@ Also send Kraken's `closetime=close` explicitly — the API default is `both`, s
 ### H-10 · Options validators accept degenerate zero values
 
 > ✅ **Resolved** by [P1-07](docs/plans/p1-07-h10-tighten-options-validators.md), merged as PR #47.
-> `MinWaitTime` must now be at least one second and `MaxWaitTime` greater than zero, so the
-> all-zero `WaitOptions` that produced the busy loop no longer starts; `MinOrderVolume` must be
-> greater than zero, `AskMultiplier` sits in `[0.5, 1.5]`, `Fee` in `[0, 100]`, every `double` is
-> checked for finiteness, and `CryptoPair` must look like a pair. `appsettings.json` ships defaults
-> for all four sections, so the only startup failures a checkout without `stack.env` produces are
-> `Secrets` and `CryptoPair` — both deliberate. All of it is unit-tested, which it was not before.
+> `MinWaitTime` must now be at least one second and `MaxWaitTime` between zero and seven days — so
+> the all-zero `WaitOptions` that produced the busy loop no longer starts, and neither does a
+> `MaxWaitTime` that `Task.Delay` would throw on. `MinOrderVolume` must be greater than zero,
+> `AskMultiplier` sits in `[0.5, 1.5]` (and is warned about below 1, where a limit buy can rest
+> unfilled), `Fee` in `[0, 100]`, every `double` is checked for finiteness, and `CryptoPair` must
+> match `^[A-Z0-9]{4,16}$` — the bounds Kraken's live `AssetPairs` list actually needs.
+> `appsettings.json` ships defaults for all four sections, so the only startup failures a checkout
+> without `stack.env` produces are `Secrets` and `CryptoPair` — both deliberate. All of it is
+> unit-tested, which it was not before.
 
 **Files:** [OrderOptions.cs:27-34](src/Kbot.DcaService/Options/OrderOptions.cs#L27-L34) · [WaitOptions.cs:16-23](src/Kbot.DcaService/Options/WaitOptions.cs#L16-L23)
 
