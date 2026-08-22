@@ -98,9 +98,10 @@ public class DcaWorker(
       catch (Exception ex)
       {
         waitTime = backoff.Next();
-        // Never a non-positive delay: a WaitOptions of 00:00:00 passes validation today, and that
-        // would turn a persistent fault into a busy loop against Kraken. Rejecting such a
-        // configuration outright is P1-07.
+        // Never a non-positive delay: WaitOptionsValidator now rejects a MinWaitTime below one
+        // second, so this is defence in depth for any future configuration path that reaches the
+        // loop without passing that validator — a zero delay would turn a persistent fault into a
+        // busy loop against Kraken.
         if (waitTime <= TimeSpan.Zero)
         {
           waitTime = MinimumFailureDelay;
