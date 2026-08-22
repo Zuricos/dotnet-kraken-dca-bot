@@ -1,0 +1,87 @@
+name: CI
+
+# Deliberately unfiltered: no `paths:` and no `branches:`.
+#
+# Remediation work targets the `review-and-fix` integration branch, not `main`, so a
+# `branches: [main]` filter — which is what both publish workflows use — would leave every
+# remediation PR ungated. A `paths:` filter would do the same for changes to
+# Directory.Packages.props, Directory.Build.props, nuget.config or Kbot.sln, all of which are
+# COPY'd into the images and can break the build on their own.
+on:
+  push:
+  pull_request:
+  # Called by the two publish workflows so `build-and-publish` cannot run on a red build.
+  workflow_call:
+
+# `github.workflow` is the *caller's* workflow name when this file runs via `workflow_call`, so a
+# direct CI run and the runs the two publish workflows trigger land in three different groups
+# instead of cancelling each other on a push to `main`.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  # The LiveExchange tests place REAL buy orders on live Kraken and send real mail. They are
+  # excluded twice below (the `--filter` and the `.runsettings` it stands in for), and each one
+  # additionally refuses to run unless this variable is exactly "1" — see test/Shared/LiveGuard.cs.
+  # Pinning it here means no inherited runner environment can ever arm them.
+  KBOT_ALLOW_LIVE_TRADING: "0"
+
+jobs:
+  ci:
+    name: Build, test and format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          # There is no global.json; Directory.Build.props pins <TargetFramework>net10.0</TargetFramework>
+          # for every project, so the SDK band is derived from that.
+          dotnet-version: "10.0.x"
+
+      - name: Restore .NET tools
+        run: dotnet tool restore
+
+      - name: Restore
+        run: dotnet restore Kbot.sln
+
+      - name: Build
+        run: dotnet build Kbot.sln --no-restore -c Release -warnaserror
+
+      # Belt and braces: `.runsettings` carries the same category filter, but a command-line
+      # `--filter` replaces it rather than being ANDed with it (see test/Directory.Build.props), so
+      # spell the exclusions out here as well.
+      - name: Test
+        run: |
+          dotnet test Kbot.sln \
+            --no-build \
+            -c Release \
+            --filter "TestCategory!=LiveExchange&TestCategory!=LiveApi" \
+            --logger trx \
+            --results-directory artifacts/test-results \
+            --collect:"XPlat Code Coverage"
+
+      # `!cancelled()` does not mask anything — the job still fails on a formatting violation. It
+      # only means a single CI run reports build, test *and* format problems together instead of
+      # stopping at the first one.
+      - name: Check formatting
+        if: ${{ !cancelled() }}
+        run: dotnet csharpier check .
+
+      - name: Upload test results and coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: warn
+          retention-days: 14
