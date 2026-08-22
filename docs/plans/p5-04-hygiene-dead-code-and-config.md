@@ -62,6 +62,12 @@ inconsistent `secrets.template.json` vs `secrets-template.json` naming across fi
 **Fix:** correct the placeholders, standardise on **one** naming convention
 (`secrets-template.json`), rename the outliers, and update every reference (README, compose, csproj,
 `.dockerignore`).
+> Since **P1-06** merged (#48), `.dockerignore` lives at the **repo root**, not under `docker/`, and
+> its glob is `**/secrets*template.json`, which already covers both spellings — the rename will not
+> un-ignore anything. No csproj references a secret template either; P1-06 removed the last
+> `<None Update="secrets.json">` item and `Directory.Build.props` now carries a
+> `$(DefaultItemExcludes)` line for `**/*secrets.json` / `**/*state.json`, so keep that in mind when
+> adding `<TreatWarningsAsErrors>` to the same file.
 
 ## Out of scope
 - Naming/typo renames in code → **P5-05** (L-11).

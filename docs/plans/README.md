@@ -112,7 +112,7 @@ the Resolution section what you left out and which plan owns it.
 | P1-03 ✅ | C-4 | Clamp the top-up day, persist state before bookkeeping *(resolved — #45)* | `fix/p1-c4-topup-day-clamp-and-state-order` |
 | P1-04 ✅ | C-5 | Worker loop resilience and backoff *(resolved — #46)* | `fix/p1-c5-worker-loop-resilience` |
 | P1-05 | H-3 | CI: build, test, format gate | `ci/p1-h3-build-test-lint-pipeline` |
-| P1-06 | H-4 | Fix the inert `.dockerignore` and the `secrets.json` copy | `fix/p1-h4-dockerignore-and-secret-copy` |
+| P1-06 ✅ | H-4 | Fix the inert `.dockerignore` and the `secrets.json` copy *(resolved — #48)* | `fix/p1-h4-dockerignore-and-secret-copy` |
 | P1-07 | H-10 | Tighten the options validators | `fix/p1-h10-tighten-options-validators` |
 | P1-08 ✅ | H-11 | Remove the committed DB password and published port *(resolved — #44)* | `fix/p1-h11-database-credentials-exposure` |
 | P1-09 | M-16 | Stop logging the API secret | `fix/p1-m16-redact-secrets-in-logs` |
