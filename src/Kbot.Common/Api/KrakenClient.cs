@@ -49,7 +49,10 @@ public sealed class KrakenClient(ILogger<KrakenClient> logger, KrakenApi api) : 
         new Dictionary<string, string> { { "pair", pair } }
       );
       if (HasError(response))
+      {
+        logger.LogError("Ticker for {Pair} came back as an error response.", pair);
         return 0.0;
+      }
 
       // Kraken answers with its own canonical pair name (XXBTZUSD) even when asked for an alias
       // (XBTUSD), so the single entry is taken by value instead of indexed by the requested name.
