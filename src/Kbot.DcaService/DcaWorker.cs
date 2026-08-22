@@ -34,6 +34,22 @@ public class DcaWorker(
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
     logger.LogInformation("DCA Worker running at: {time}", DateTime.UtcNow);
+    // Stated explicitly because OrderType.Market is the enum default: an omitted OrderOptions__Type
+    // selects it, and a market order ignores the price this worker computes.
+    logger.LogInformation(
+      "Effective order type is {OrderType} for {CryptoPair}, volume {MinOrderVolume} at {AskMultiplier}x ask.",
+      orderOptions.Value.Type,
+      CryptoPair,
+      MinOrderVolume,
+      AskMultiplier
+    );
+    if (orderOptions.Value.Type == OrderType.Market)
+    {
+      logger.LogWarning(
+        "Order type is {OrderType}: orders execute at whatever the book offers, not at the computed price.",
+        OrderType.Market
+      );
+    }
 
     State = DcaStateHandler.Load();
     var nextTopUpTime = computeService.ComputeNextTopUpTime(
