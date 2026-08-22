@@ -52,8 +52,11 @@ btc_adress_qr.png
 # --- Local secrets, state and logs --------------------------------------------
 # Secrets reach the containers through the mounted docker secret files
 # (/run/secrets/dca-secrets, /run/secrets/mail-secrets) and environment variables, and state
-# lives in the mounted state/ volume -- never through the build context. The two glob shapes
-# mirror .gitignore's `*secrets.json` / `*state.json`.
+# lives in the mounted state/ volume -- never through the build context. The `*secrets.json` /
+# `*state.json` shapes mirror .gitignore's own. `secrets*template.json` replaces
+# `secrets-template.json`, which matched the two `secrets-template.json` files but not the
+# `secrets.template.json` spelling used by the DCA and test projects; the wildcard covers both,
+# so P5-04's L-16 rename cannot un-ignore anything.
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/appsettings.Development.json

@@ -63,11 +63,14 @@ inconsistent `secrets.template.json` vs `secrets-template.json` naming across fi
 (`secrets-template.json`), rename the outliers, and update every reference (README, compose, csproj,
 `.dockerignore`).
 > Since **P1-06** merged (#48), `.dockerignore` lives at the **repo root**, not under `docker/`, and
-> its glob is `**/secrets*template.json`, which already covers both spellings — the rename will not
-> un-ignore anything. No csproj references a secret template either; P1-06 removed the last
-> `<None Update="secrets.json">` item and `Directory.Build.props` now carries a
-> `$(DefaultItemExcludes)` line for `**/*secrets.json` / `**/*state.json`, so keep that in mind when
-> adding `<TreatWarningsAsErrors>` to the same file.
+> its glob is `**/secrets*template.json`. The previous `**/secrets-template.json` did match the two
+> files spelled that way and missed only the `secrets.template.json` spelling, so the wildcard is a
+> widening, not a resurrection: either way the rename cannot un-ignore anything. No csproj
+> references a secret template either — P1-06 deleted the DCA csproj's whole `<None>` item group —
+> and `Directory.Build.props` now carries both a `$(DefaultItemExcludes)` line for
+> `**/*secrets.json` / `**/*state.json` and a `GuardLocalOnlyFilesOutOfOutput` target that fails
+> the build if one is marked for copying, so keep both in mind when adding
+> `<TreatWarningsAsErrors>` to that file.
 
 ## Out of scope
 - Naming/typo renames in code → **P5-05** (L-11).

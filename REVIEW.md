@@ -318,13 +318,18 @@ Compounding this, **Dependabot's PRs trigger nothing at all**. It watches `direc
 > ✅ **Resolved** by [P1-06](docs/plans/p1-06-h4-dockerignore-and-secret-copy.md), merged as PR #48.
 > The file now lives at the repository root, where BuildKit actually reads it, so the build context
 > went from 41.25 MB (the whole repo, `.git/` and all `bin`/`obj` included) to 380 KB containing
-> only what the Dockerfiles copy. Three inherited patterns that matched nothing here were replaced
-> by ones that do: `docker` (for `Kbot.*.Dockerfile`, `example-compose.yaml` and `stack.env`),
-> `**/*.env` and `**/secrets*template.json`. The csproj's `secrets.json` / `state.json` copy
+> only what the Dockerfiles copy. Four inherited patterns were replaced by ones that match this
+> repo's filenames: `docker` (`**/Dockerfile*` and `**/compose*` matched nothing — they need those
+> exact prefixes, not `Kbot.*.Dockerfile` / `example-compose.yaml` — and the directory also holds
+> `stack.env`), `**/*.env` (`**/.env` matched nothing either) and `**/secrets*template.json`
+> (`**/secrets-template.json` did match the two files spelled that way, but missed the
+> `secrets.template.json` spelling). The csproj's `secrets.json` / `state.json` copy
 > directives are deleted — and because `Microsoft.NET.Sdk.Worker` globs `**/*.json` into `Content`
 > with `CopyToPublishDirectory` set, deleting them was not enough on its own: `Directory.Build.props`
 > now excludes `**/*secrets.json` and `**/*state.json` from that glob, which also closes the same
-> leak in Kbot.MailService, whose csproj never had any `<None>` items.
+> leak in Kbot.MailService, whose csproj never had any `<None>` items. A `GuardLocalOnlyFilesOutOfOutput`
+> MSBuild target in the same file fails the build if either service ever marks a `*secrets.json` /
+> `*state.json` for copying again.
 
 **Files:** [docker/.dockerignore](docker/.dockerignore) · [docker-dca.yml:52-53](.github/workflows/docker-dca.yml#L52-L53) · [Kbot.DcaService.csproj:19-21](src/Kbot.DcaService/Kbot.DcaService.csproj#L19-L21)
 
