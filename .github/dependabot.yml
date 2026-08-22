@@ -20,3 +20,36 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+
+  # The workflow files pin their actions to commit SHAs, which never move on their own.
+  # Without this ecosystem a pinned action stays on whatever it was pinned to forever,
+  # including through a security advisory.
+  - package-ecosystem: "github-actions" # .github/workflows/*.yml
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      all:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci:"
+      include: "scope"
+
+  # "/docker", not "/": the docker ecosystem scans the named directory for Dockerfiles and
+  # compose files, and every one of this repo's lives under docker/. Pointing it at the root
+  # would make the block inert — exactly the failure this plan exists to fix.
+  - package-ecosystem: "docker" # docker/*.Dockerfile base images
+    directory: "/docker"
+    schedule:
+      interval: "monthly"
+    groups:
+      all:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "fix:"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
