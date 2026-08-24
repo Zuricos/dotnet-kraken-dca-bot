@@ -8,6 +8,12 @@ on:
       - src/Kbot.Common/**
       - src/Kbot.MailService/**
       - docker/**
+      # COPY'd into the image and able to break the build on their own — a
+      # Dependabot bump to Directory.Packages.props used to match nothing here.
+      - Directory.Build.props
+      - Directory.Packages.props
+      - nuget.config
+      - Kbot.sln
   workflow_dispatch:
   pull_request:
     branches:
@@ -16,6 +22,10 @@ on:
       - src/Kbot.Common/**
       - src/Kbot.MailService/**
       - docker/**
+      - Directory.Build.props
+      - Directory.Packages.props
+      - nuget.config
+      - Kbot.sln
 
 jobs:
   compute-version:
@@ -26,7 +36,10 @@ jobs:
         uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: mail
-          paths: "src/Kbot.Common src/Kbot.MailService docker/Kbot.MailService.Dockerfile"
+          # Must list the same files as the `paths:` triggers above: this is the change_path
+          # semantic-version counts commits against, so without them a commit that only bumps
+          # Directory.Packages.props computes needs_bump=false and no image is built.
+          paths: "src/Kbot.Common src/Kbot.MailService docker/Kbot.MailService.Dockerfile Directory.Build.props Directory.Packages.props nuget.config Kbot.sln"
     outputs:
       version: ${{ steps.compute-version.outputs.version }}
       suffix: ${{ steps.compute-version.outputs.suffix }}
