@@ -301,6 +301,22 @@ Two verified consequences:
 
 ### H-3 · CI has no build, test, or lint step — images publish unvalidated
 
+> ✅ **Resolved** by [P1-05](docs/plans/p1-05-h3-build-test-lint-pipeline.md), merged as PR #49.
+> [.github/workflows/ci.yml](.github/workflows/ci.yml) runs `dotnet restore`, `dotnet build
+> -warnaserror`, the test suite under `TestCategory!=LiveExchange&TestCategory!=LiveApi` with trx +
+> Cobertura output, and `dotnet csharpier check .` — on every push and every PR, with no `paths:`
+> and no `branches:` filter, `permissions: contents: read`, and no `continue-on-error` anywhere.
+> Both publish workflows now call it as a reusable workflow and `build-and-publish` has
+> `needs: [compute-version, ci]`, so a red build never reaches GHCR. The version gate is
+> `== 'true'`, which the action's `check_bump_version` step confirms is the right comparison — it
+> echoes the literal strings `true` / `false`. `Directory.Build.props`,
+> `Directory.Packages.props`, `nuget.config` and `Kbot.sln` were added to both the trigger `paths:`
+> *and* the `compute-version` `paths:` input, so a Dependabot bump now both validates and rebuilds;
+> Dependabot itself gained the `github-actions` and `docker` ecosystems. csharpier is pinned to
+> 1.3.0 in [.config/dotnet-tools.json](.config/dotnet-tools.json). SHA-pinning the
+> `Zuricos/gh-actions/*` actions and the remaining publish-workflow hardening stayed with **P2-09**
+> (M-18, M-19, M-20); no coverage threshold is enforced yet — that waits for **P3-03**.
+
 **Files:** [docker-dca.yml:20-68](.github/workflows/docker-dca.yml#L20-L68) · [docker-mail.yml:20-68](.github/workflows/docker-mail.yml#L20-L68) · [dependabot.yml:9-16](.github/dependabot.yml#L9-L16)
 
 These are the only two workflows. Each has exactly two jobs — `compute-version` and `build-and-publish`. Neither runs `dotnet build`, `dotnet test`, `dotnet format`, or `csharpier --check`; grepping the workflow directory for `dotnet` returns nothing. A change that breaks the interval maths, corrupts state serialization, or breaks HMAC signing ships straight to `ghcr.io/zuricos/kraken-dca-service:latest`.

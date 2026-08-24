@@ -6,7 +6,7 @@
 | **Phase** | 5 — Docs & hygiene |
 | **Branch** | `chore/p5-hygiene-dead-code-and-config` |
 | **Effort** | S–M (~5 h) |
-| **Depends on** | **P1-05** (`-warnaserror` in CI first, so enabling `<TreatWarningsAsErrors>` does not surprise anyone), and ideally after Phase 2/4 so you are not deleting code another branch is editing |
+| **Depends on** | ✅ **P1-05** (#49) — CI already builds with the `-warnaserror` CLI flag, so `<TreatWarningsAsErrors>` will surprise nobody; drop the flag from `ci.yml` when you add the property, so the two do not both claim it. Still best taken after Phase 2/4, so you are not deleting code another branch is editing |
 | **Blocks** | — |
 | **Conflict surface** | `.gitignore`, `Directory.Build.props`, both `Program.cs`, both `ServiceCollectionExtension.cs`, `src/Kbot.MailService/Utility/HtmlService.cs`, `src/Kbot.Common/Dtos/Balance.cs`, secret templates |
 

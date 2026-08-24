@@ -68,7 +68,9 @@ the retry loop — 25 s of the suite's runtime spent failing silently.
 ## Acceptance criteria
 
 - Line coverage on `Kbot.Common` and `Kbot.DcaService` above a threshold agreed in the PR (suggest
-  70 % as the first bar, measured by the coverlet run CI already collects from **P1-05**).
+  70 % as the first bar, measured by the coverlet run CI already collects — **P1-05** is merged
+  (#49), so `ci.yml` uploads `coverage.cobertura.xml` in the `test-results` artifact today. No
+  threshold is enforced yet; adding one is this plan's job.
 - Every row of the REVIEW.md Appendix table is either covered or explicitly listed in the PR as
   deferred with a reason.
 - The suite runs offline, in parallel, in under ~30 s.

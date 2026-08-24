@@ -14,8 +14,9 @@ then follow §8 to produce the next handoff.
 |---|---|
 | Repo | `dotnet-kraken-dca-bot` — a .NET 10 Kraken DCA bot (6 projects: `Kbot.Common`, `Kbot.DcaService`, `Kbot.MailService` + 3 test projects) |
 | What exists | A full code review ([REVIEW.md](../REVIEW.md)), a phased roadmap ([ROADMAP.md](ROADMAP.md)) and 37 branch-sized implementation plans ([plans/](plans/)) |
-| What has been fixed | **6 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02), C-4 (P1-03), C-5 (P1-04) and H-11 (P1-08) are merged. The rest are open. |
-| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`), P1-02 (#43), P1-03 (#45), P1-04 (#46) and P1-08 (#44) have landed there; everything else is still open. |
+| What has been fixed | **7 of 64 findings.** C-1 (P1-01), C-2 / C-3 (P1-02), C-4 (P1-03), C-5 (P1-04), H-11 (P1-08) and H-3 (P1-05) are merged. The rest are open. |
+| Branch state | `main` = upstream, untouched. `review-and-fix` = `main` + the review + these docs, and **the integration branch all work merges into**. P1-01 (`58c2262`), P1-02 (#43), P1-03 (#45), P1-04 (#46), P1-08 (#44) and P1-05 (#49) have landed there; everything else is still open. |
+| CI | **Exists since P1-05 (#49).** [.github/workflows/ci.yml](../.github/workflows/ci.yml) runs `dotnet build -warnaserror`, the safe-filtered test suite and `csharpier check` on every push and every PR — no `branches:` filter, so PRs into `review-and-fix` are gated. Publishing is behind it. |
 
 **The one thing to know:** the review's verdict is *"not safe to run unattended with real money until
 C-1 … C-5 are fixed."* Those five findings are owned by plans **P1-01, P1-02, P1-03, P1-04**. They are
@@ -419,14 +420,18 @@ Rules:
 
 ## 6. Definition of done, per PR
 
-> There is no CI yet — plan **P1-05** adds it; P1-01 has merged, so it is unblocked. Until then these
-> checks are yours to run locally. Note that the two existing publish workflows are filtered to
-> `pull_request: branches: [main]`, so PRs into `review-and-fix` trigger **nothing** — no image
-> is built or pushed by this work.
+> ✅ **CI exists since P1-05 (#49).** [ci.yml](../.github/workflows/ci.yml) runs build, test and
+> `csharpier check` on every push and every PR with no `branches:` filter, so a PR into
+> `review-and-fix` is gated. Run the checks locally anyway — a red CI run costs a round trip — and
+> note `dotnet csharpier check .` now needs `dotnet tool restore` first (csharpier is a local tool
+> pinned in `.config/dotnet-tools.json`). The two publish workflows are still filtered to
+> `branches: [main]`, so PRs into `review-and-fix` build and push **no image**; on `main` their
+> publish job is now gated behind `ci.yml`.
 
 - Every acceptance criterion in the plan is met.
 - `dotnet build Kbot.sln -warnaserror` clean.
-- `dotnet csharpier check .` clean (the repo is csharpier-formatted; `.editorconfig` is authoritative).
+- `dotnet tool restore` once, then `dotnet csharpier check .` clean (the repo is csharpier-formatted;
+  `.editorconfig` is authoritative).
 - Tests pass under the safe filter
   (applied by default through `.runsettings` since P1-01 landed).
 - PR body links the plan file, lists what was verified, and names anything deliberately left out.
@@ -450,6 +455,7 @@ Every PR updates its own row, on its own branch, before it is opened — see
 | P1-02 | `fix/p1-c2-c3-guard-worker-sentinels` | ✅ resolved | #43 | via #43 |
 | P1-03 | `fix/p1-c4-topup-day-clamp-and-state-order` | ✅ resolved | #45 | via #45 |
 | P1-04 | `fix/p1-c5-worker-loop-resilience` | ✅ resolved | #46 | via #46 |
+| P1-05 | `ci/p1-h3-build-test-lint-pipeline` | ✅ resolved | #49 | via #49 |
 | P1-06 | `fix/p1-h4-dockerignore-and-secret-copy` | — | | |
 | P1-07 | `fix/p1-h10-tighten-options-validators` | — | | |
 | P1-08 | `fix/p1-h11-database-credentials-exposure` | ✅ resolved | #44 | via #44 |
@@ -468,12 +474,12 @@ Each merge unlocks specific plans. From [ROADMAP.md](ROADMAP.md) §4:
 
 | When this merges | These become ready |
 |---|---|
-| ✅ P1-01 *(merged)* | **P1-05** (`ci/p1-h3-build-test-lint-pipeline`) — **now ready**; CI could not be wired up before the tests were safe |
+| ✅ P1-01 *(merged)* | ~~**P1-05**~~ ✅ **merged as #49** — the build/test/format gate is live |
 | ✅ P1-03 *(merged)* | **P1-10** (`test/p1-h12-deterministic-timecompute-tests`) — **now ready**; the clamp it has to assert is in |
 | ✅ P1-02 **and** ✅ P1-04 *(both merged)* | **P2-01** (`refactor/p2-i1-kraken-result-protocol`) — the highest-value change in the review; **now ready** |
 | ✅ P1-03 *(merged)* **and** P1-07 | **P2-08** (`refactor/p2-i5-shared-trading-options`) — now waiting on P1-07 alone |
 | ✅ P1-08 *(merged)* | **P4-06** (`fix/p4-m17-m21-startup-and-healthchecks`) — **now ready**; the compose file no longer carries the port mapping or the password |
-| P1-05 | **P2-09** (`ci/p2-workflow-hardening`) |
+| ✅ P1-05 *(merged)* | **P2-09** (`ci/p2-workflow-hardening`) — **now ready**; branch off a `review-and-fix` that already carries the `ci` job, the `== 'true'` version gate and the extended `paths:` filters |
 | P2-02 | **P2-03** (`refactor/p2-h2-decimal-money`) |
 
 Also ready at any time, needing nothing from Wave 0: **P4-01, P4-02, P4-03, P4-05, P4-07, P4-10** —

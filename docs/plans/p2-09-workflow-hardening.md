@@ -6,9 +6,17 @@
 | **Phase** | 2 — Contract & numeric correctness (infrastructure track) |
 | **Branch** | `ci/p2-workflow-hardening` |
 | **Effort** | S (~2 h) |
-| **Depends on** | **P1-05** (same files; merge P1-05 first) |
+| **Depends on** | ✅ **P1-05** — merged as PR #49, so this is **ready** |
 | **Blocks** | — |
 | **Conflict surface** | `.github/workflows/docker-dca.yml`, `.github/workflows/docker-mail.yml`, `.github/workflows/ci.yml` |
+
+> **What P1-05 (#49) already landed in these files**, so you neither redo nor undo it: `ci.yml`
+> exists and pins its three `actions/*` uses to SHAs; both publish workflows gained a `ci:` job that
+> calls it (`uses: ./.github/workflows/ci.yml`) with `build-and-publish` on
+> `needs: [compute-version, ci]`; the version gate is `== 'true'`; and both `paths:` filters plus the
+> `compute-version` `paths:` input list `Directory.Build.props`, `Directory.Packages.props`,
+> `nuget.config` and `Kbot.sln`. Keep the `ci:` job and its `needs:` edge intact through the
+> PR-versus-push split in scope item 2 — it is the gate H-3 bought.
 
 ## Problem
 
@@ -30,7 +38,9 @@
    uses: Zuricos/gh-actions/compute-version@<40-char-sha>   # v1.2.3
    ```
    Do the same for `actions/*` (they are first-party but pinning is uniform and dependabot's
-   `github-actions` ecosystem — added in P1-05 — will keep them fresh).
+   `github-actions` ecosystem — added in P1-05, merged — will keep them fresh). `ci.yml` is already
+   pinned this way, so the remaining `@main` uses are the three `Zuricos/gh-actions/*` ones plus
+   `actions/checkout` and `actions/attest-build-provenance` in the two publish workflows.
 2. Split build from publish on PRs: on `pull_request`, build the image **without pushing**
    (`push: false` / no registry login, no attestation, no tag push) and drop the write permissions to
    `contents: read`. Push only on `push` to `main` and `workflow_dispatch`. This makes fork PRs green.
@@ -49,7 +59,7 @@
    redesign versioning here.
 
 ### Out of scope
-- Adding CI itself → **P1-05**.
+- Adding CI itself → **P1-05** (merged as #49).
 - Reconciling `VERSION` / CHANGELOG / compose tags → **P5-02** (L-3).
 - Base-image pinning inside the Dockerfiles → **P4-06** (M-21).
 

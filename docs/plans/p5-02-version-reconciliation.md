@@ -37,7 +37,8 @@ versions independently, so one root `VERSION` file cannot represent both images.
    Use the Keep-a-Changelog format the file already uses.
 3. Pin `example-compose.yaml` to versions that actually exist in GHCR, and add a comment telling users
    to pin rather than track `latest`.
-4. Make the mismatch impossible to repeat: add a CI check (extend **P1-05**'s `ci.yml`) that fails if
+4. Make the mismatch impossible to repeat: add a CI check — extend the `ci` job in
+   [ci.yml](../../.github/workflows/ci.yml), which **P1-05** landed in #49 — that fails if
    the CHANGELOG's newest version does not match the computed version, or if `example-compose.yaml`
    references a tag that does not exist in the registry. Keep it simple — a grep-and-compare script is
    enough.

@@ -44,7 +44,8 @@ and stops trading indefinitely — the project's core failure mode is *silence*.
          condition: service_healthy
    ```
 3. Dockerfiles: pin base images by **digest** (`mcr.microsoft.com/dotnet/runtime:10.0@sha256:…`) with
-   a comment naming the tag, so dependabot's `docker` ecosystem (added in **P1-05**) can bump them.
+   a comment naming the tag, so dependabot's `docker` ecosystem can bump them — **P1-05** is merged
+   (#49) and that block is live, scoped to `directory: "/docker"`, which is where both Dockerfiles are.
    Set `TZ=UTC` explicitly and `ENV DOTNET_EnableDiagnostics=0` for the runtime images.
 4. Add a real `HEALTHCHECK` to both images. Options, in order of preference:
    - **(a)** Switch both workers to `Microsoft.NET.Sdk.Web` and expose `/health/live` + `/health/ready`
