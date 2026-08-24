@@ -46,9 +46,19 @@ jobs:
       needsBump: ${{ steps.compute-version.outputs.needs_bump }}
       version_tag: ${{ steps.compute-version.outputs.version_tag }}
 
+  # A job can only `needs:` a job in its own workflow, so gate on ci.yml by calling it.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   build-and-publish:
-    needs: compute-version
-    if: ${{ needs.compute-version.outputs.needsBump }}
+    # `ci` is in `needs`, and a plain `if:` expression without a status function is ANDed with
+    # the implicit success() over `needs` — so a red build or a formatting violation skips this
+    # job, and nothing gets pushed to GHCR.
+    needs: [compute-version, ci]
+    # `== 'true'` matters. compute-version emits the literal strings "true" / "false" (see its
+    # check_bump_version step); bare string truthiness made GitHub read "false" as true, so the
+    # gate never actually skipped anything.
+    if: ${{ needs.compute-version.outputs.needsBump == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
