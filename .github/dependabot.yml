@@ -20,3 +20,43 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+
+  # ci.yml pins its three `actions/*` uses to commit SHAs, which never move on their own;
+  # without this ecosystem such a pin stays put forever, including through a security advisory.
+  # Scope note: this does NOT yet address M-18. The publish workflows still carry five floating
+  # refs — three `Zuricos/gh-actions/*@main` plus `actions/checkout@v4` and
+  # `actions/attest-build-provenance@v2`. Dependabot can move the `@v4` / `@v2` ones, but it can
+  # do nothing with a `@main` ref: there is no version to compare. P2-09 pins those.
+  - package-ecosystem: "github-actions" # .github/workflows/*.yml
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      all:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci:"
+      include: "scope"
+
+  # "/docker", not "/": the docker ecosystem scans the named directory for Dockerfiles and
+  # compose files, and every one of this repo's lives under docker/. Pointing it at the root
+  # would make the block inert — exactly the failure this plan exists to fix.
+  # The semver-major ignore below is deliberate, not copy-paste: a bot that runs unattended should
+  # not be offered a .NET 11 base image by a robot. Revisit it when a major upgrade is wanted.
+  # This block is also inert until P4-06 pins the base images by digest — a `docker` ecosystem
+  # earns its keep bumping digests, and both Dockerfiles still reference floating tags.
+  - package-ecosystem: "docker" # docker/*.Dockerfile base images
+    directory: "/docker"
+    schedule:
+      interval: "monthly"
+    groups:
+      all:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "fix:"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]

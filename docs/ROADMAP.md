@@ -164,12 +164,12 @@ merge order matters (see the note below) but their *development* does not.
 
 | Plan | Unlocked by | Branch |
 |---|---|---|
-| P1-05 | P1-01 | `ci/p1-h3-build-test-lint-pipeline` |
+| ~~P1-05~~ ✅ merged *(#49)* | ✅ P1-01 | `ci/p1-h3-build-test-lint-pipeline` |
 | P1-10 | ✅ P1-03 *(merged — ready)* | `test/p1-h12-deterministic-timecompute-tests` |
 | P2-01 | ✅ P1-02 + P1-04 (**both merged — ready**) | `refactor/p2-i1-kraken-result-protocol` |
 | P2-03 | P2-02 | `refactor/p2-h2-decimal-money` |
 | P2-08 | ✅ P1-03 + P1-07 (waiting on P1-07) | `refactor/p2-i5-shared-trading-options` |
-| P2-09 | P1-05 | `ci/p2-workflow-hardening` |
+| P2-09 | ✅ P1-05 *(merged — ready)* | `ci/p2-workflow-hardening` |
 | P4-01 | — (soft: P3-01) | `refactor/p4-h6-json-state-store` |
 | P4-02 | — (soft: P3-01) | `fix/p4-h7-holiday-cache-resilience` |
 | P4-03 | — (soft: P3-01) | `refactor/p4-h8-httpclient-lifetimes-resilience` |
@@ -193,8 +193,8 @@ merge order matters (see the note below) but their *development* does not.
 | P3-01 | P2-01 + P2-03 | `refactor/p3-testability-seams` |
 | P4-04 | P4-03 | `refactor/p4-m24-cancellation-propagation` |
 | P5-02 | P2-09 | `docs/p5-version-reconciliation` |
-| P5-03 | P1-01 + P1-05 | `docs/p5-contributing-and-security` |
-| P5-04 | P1-05 | `chore/p5-hygiene-dead-code-and-config` |
+| P5-03 | ✅ P1-01 + ✅ P1-05 (**both merged — ready**) | `docs/p5-contributing-and-security` |
+| P5-04 | ✅ P1-05 *(merged — ready)* | `chore/p5-hygiene-dead-code-and-config` |
 | P3-03 (pure half) | P1-01 | `test/p3-coverage-gaps-pure` |
 
 ### Wave 3
@@ -228,7 +228,7 @@ Every finding in REVIEW.md, with its owning plan. Use this to check nothing was 
 | C-5 ✅ | P1-04 *(merged)* | M-5 | P4-09 |
 | H-1 | P2-02 | M-6 | P4-09 |
 | H-2 | P2-03 | M-7 | P4-08 |
-| H-3 | P1-05 | M-8 | P4-08 |
+| H-3 ✅ | P1-05 *(merged)* | M-8 | P4-08 |
 | H-4 | P1-06 | M-9 | P4-10 |
 | H-5 | P2-07 | M-10 | P4-05 (also noted in P4-10) |
 | H-6 | P4-01 | M-11 | P4-03 |
@@ -272,7 +272,7 @@ order up front.
 | `src/Kbot.MailService/Utility/MailSenderService.cs` | P2-05, P2-07, P4-07, P4-08 | P2-07 → P2-05 → P4-08 → P4-07 |
 | `src/Kbot.MailService/Utility/OrderService.cs` | P2-01, P2-04, P2-06, P4-08 | P2-01 → P2-06 → P2-04 → P4-08 |
 | `src/Kbot.MailService/Migrations/**` | P2-03, P2-04 | P2-03 → P2-04 (**never in parallel** — two pending migrations conflict) |
-| `.github/workflows/**` | P1-05, P2-09, P5-02 | P1-05 → P2-09 → P5-02 |
+| `.github/workflows/**` | P1-05 ✅, P2-09, P5-02 | P1-05 *(merged — `ci.yml` exists, both publish workflows call it)* → P2-09 → P5-02 |
 | `docker/example-compose.yaml` | P1-08 ✅, P4-06, P5-02 | P1-08 *(merged)* → P4-06 → P5-02 |
 | `docker/stack.env` | P1-08 ✅, P2-08, P4-10 | P1-08 *(merged)* → P2-08 → P4-10 |
 | `README.md` | P4-05, P5-01, P5-02, P5-03 | P5-01 → P5-02 → P5-03 (P4-05 adds one section; merge whenever) |

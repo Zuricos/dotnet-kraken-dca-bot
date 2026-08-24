@@ -8,6 +8,16 @@ on:
       - src/Kbot.Common/**
       - src/Kbot.DcaService/**
       - docker/**
+      # These govern the build the image is produced from, so a change to any of them can alter
+      # or break the shipped binaries on its own. Directory.Build.props, Directory.Packages.props
+      # and nuget.config are COPY'd into the image; Kbot.sln and global.json are not, but they
+      # decide which projects are built and which SDK builds them. A Dependabot bump to
+      # Directory.Packages.props used to match none of these filters.
+      - Directory.Build.props
+      - Directory.Packages.props
+      - nuget.config
+      - Kbot.sln
+      - global.json
   workflow_dispatch:
   pull_request:
     branches:
@@ -16,6 +26,11 @@ on:
       - src/Kbot.Common/**
       - src/Kbot.DcaService/**
       - docker/**
+      - Directory.Build.props
+      - Directory.Packages.props
+      - nuget.config
+      - Kbot.sln
+      - global.json
 
 jobs:
   compute-version:
@@ -26,16 +41,29 @@ jobs:
         uses: Zuricos/gh-actions/compute-version@main
         with:
           prefix: dca
-          paths: "src/Kbot.Common src/Kbot.DcaService docker/Kbot.DcaService.Dockerfile"
+          # Must list the same files as the `paths:` triggers above: this is the change_path
+          # semantic-version counts commits against, so without them a commit that only bumps
+          # Directory.Packages.props computes needs_bump=false and no image is built.
+          paths: "src/Kbot.Common src/Kbot.DcaService docker/Kbot.DcaService.Dockerfile Directory.Build.props Directory.Packages.props nuget.config Kbot.sln global.json"
     outputs:
       version: ${{ steps.compute-version.outputs.version }}
       suffix: ${{ steps.compute-version.outputs.suffix }}
       needsBump: ${{ steps.compute-version.outputs.needs_bump }}
       version_tag: ${{ steps.compute-version.outputs.version_tag }}
 
+  # A job can only `needs:` a job in its own workflow, so gate on ci.yml by calling it.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   build-and-publish:
-    needs: compute-version
-    if: ${{ needs.compute-version.outputs.needsBump }}
+    # `ci` is in `needs`, and a plain `if:` expression without a status function is ANDed with
+    # the implicit success() over `needs` — so a red build or a formatting violation skips this
+    # job, and nothing gets pushed to GHCR.
+    needs: [compute-version, ci]
+    # `== 'true'` matters. compute-version emits the literal strings "true" / "false" (see its
+    # check_bump_version step); bare string truthiness made GitHub read "false" as true, so the
+    # gate never actually skipped anything.
+    if: ${{ needs.compute-version.outputs.needsBump == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

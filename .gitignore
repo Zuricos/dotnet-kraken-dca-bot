@@ -321,3 +321,10 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+
+# =========================
+# CI outputs
+# =========================
+
+# `dotnet test --results-directory artifacts/test-results` (see .github/workflows/ci.yml)
+artifacts/

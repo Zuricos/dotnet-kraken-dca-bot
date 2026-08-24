@@ -6,9 +6,17 @@
 | **Phase** | 2 — Contract & numeric correctness (infrastructure track) |
 | **Branch** | `ci/p2-workflow-hardening` |
 | **Effort** | S (~2 h) |
-| **Depends on** | **P1-05** (same files; merge P1-05 first) |
+| **Depends on** | ✅ **P1-05** — merged as PR #49, so this is **ready** |
 | **Blocks** | — |
 | **Conflict surface** | `.github/workflows/docker-dca.yml`, `.github/workflows/docker-mail.yml`, `.github/workflows/ci.yml` |
+
+> **What P1-05 (#49) already landed in these files**, so you neither redo nor undo it: `ci.yml`
+> exists and pins its three `actions/*` uses to SHAs; both publish workflows gained a `ci:` job that
+> calls it (`uses: ./.github/workflows/ci.yml`) with `build-and-publish` on
+> `needs: [compute-version, ci]`; the version gate is `== 'true'`; and both `paths:` filters plus the
+> `compute-version` `paths:` input list `Directory.Build.props`, `Directory.Packages.props`,
+> `nuget.config` and `Kbot.sln`. Keep the `ci:` job and its `needs:` edge intact through the
+> PR-versus-push split in scope item 2 — it is the gate H-3 bought.
 
 ## Problem
 
@@ -16,6 +24,13 @@
   `contents: write`, `packages: write`, `id-token: write` and receives `GITHUB_TOKEN`:
   [docker-dca.yml:26,49,58](../../.github/workflows/docker-dca.yml#L26). A compromised or simply
   changed upstream `main` runs with full write access to this repo and its registry.
+  > **Sized during the P1-05 review (#49), which is why this should be the next CI PR rather than a
+  > phase-2 afterthought:** anyone who can push to `Zuricos/gh-actions` can publish an arbitrary
+  > image to `ghcr.io/zuricos/kraken-dca-service:latest` **and** sign it with a genuine provenance
+  > attestation — worse than no attestation, because it launders the image. Same-owner is a
+  > mitigation, not a control. Note also that the repo's default workflow permission is `write`, so
+  > `ci.yml`'s `permissions: contents: read` is load-bearing rather than decorative: the
+  > reusable-workflow call is the only thing keeping the CI job read-only.
 - **M-19** — the `pull_request` trigger runs the **publish** job with those write permissions for
   same-repo branches; fork PRs always fail at the push step, giving outside contributors confusing red
   CI. (The workflow correctly uses `pull_request`, not `pull_request_target`.)
@@ -30,7 +45,9 @@
    uses: Zuricos/gh-actions/compute-version@<40-char-sha>   # v1.2.3
    ```
    Do the same for `actions/*` (they are first-party but pinning is uniform and dependabot's
-   `github-actions` ecosystem — added in P1-05 — will keep them fresh).
+   `github-actions` ecosystem — added in P1-05, merged — will keep them fresh). `ci.yml` is already
+   pinned this way, so the remaining `@main` uses are the three `Zuricos/gh-actions/*` ones plus
+   `actions/checkout` and `actions/attest-build-provenance` in the two publish workflows.
 2. Split build from publish on PRs: on `pull_request`, build the image **without pushing**
    (`push: false` / no registry login, no attestation, no tag push) and drop the write permissions to
    `contents: read`. Push only on `push` to `main` and `workflow_dispatch`. This makes fork PRs green.
@@ -47,9 +64,21 @@
 5. Review the tag-push race: both workflows compute a version independently from a shared `VERSION`
    file (see L-3/**P5-02**). Note in the PR whether tagging should move to one workflow; do not
    redesign versioning here.
+6. **Turn off `can_approve_pull_request_reviews`.** `gh api repos/Zuricos/dotnet-kraken-dca-bot/actions/permissions/workflow`
+   returns `{"default_workflow_permissions":"write","can_approve_pull_request_reviews":true}` — the
+   repo default is write-all *and* a workflow can approve a PR. Added to this plan's scope on the
+   review of P1-05 (#49); it is a repo setting, not a file, so say in the PR that it was changed.
+7. **Add the root `.dockerignore` to both `paths:` filters.** #48 introduced it; the existing
+   `docker/**` entry covered only the old location, so a change to the file that defines the entire
+   image build context triggers no publish and no version bump. P1-05 fixed this bug class for the
+   MSBuild files but that file did not exist on its branch yet.
+8. **Add `concurrency:` awareness of `ci.yml`'s `cancel-in-progress: true`.** Because both publish
+   workflows now call `ci.yml`, a `workflow_dispatch` during an in-flight push run cancels the older
+   run's `ci` child and so skips its `build-and-publish`. Fail-closed, but decide deliberately whether
+   that is the behaviour you want once the publish workflows get their own `concurrency:` groups.
 
 ### Out of scope
-- Adding CI itself → **P1-05**.
+- Adding CI itself → **P1-05** (merged as #49).
 - Reconciling `VERSION` / CHANGELOG / compose tags → **P5-02** (L-3).
 - Base-image pinning inside the Dockerfiles → **P4-06** (M-21).
 

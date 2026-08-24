@@ -6,7 +6,7 @@
 | **Phase** | 5 — Docs & hygiene |
 | **Branch** | `docs/p5-contributing-and-security` |
 | **Effort** | S (~2 h) |
-| **Depends on** | **P1-01** (the test-safety warning must describe the gated reality), **P1-05** (document the CI gate) |
+| **Depends on** | ✅ **P1-01** and ✅ **P1-05** (#49) — both merged, so this is **ready** |
 | **Blocks** | — |
 | **Conflict surface** | New files under `.github/`; `README.md` (also P5-01, P5-02) |
 
@@ -29,8 +29,10 @@ by default. And nothing warns a new contributor that `dotnet test` trades real m
      and a plain statement that the live tests spend money (post-**P1-01**).
    - Local setup: .NET SDK version, `dotnet user-secrets` for the Kraken keys, running Postgres for
      the mail service.
-   - Formatting: `dotnet csharpier .` before committing; the `.editorconfig` is authoritative.
-   - The CI gate (**P1-05**) and what it runs.
+   - Formatting: `dotnet tool restore` once, then `dotnet csharpier .` before committing; csharpier is
+     a local tool pinned in `.config/dotnet-tools.json` and the `.editorconfig` is authoritative.
+   - The CI gate — [ci.yml](../../.github/workflows/ci.yml), landed by **P1-05** in #49: build
+     `-warnaserror`, the safe-filtered test suite, `csharpier check`, and publishing gated behind it.
    - Conventional-commit prefixes as used in the history (`fix:`, `feat:`, …).
    - Versioning model (**P5-02**) and where CHANGELOG entries go.
    - A pointer to `docs/ROADMAP.md` and `docs/plans/` for anyone looking for work.

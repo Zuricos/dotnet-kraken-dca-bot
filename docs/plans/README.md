@@ -31,15 +31,32 @@ prompts and the status board.
    `refactor:`, `test:`, `ci:`, `chore:`, `docs:`). One logical change per commit.
 6. **Verify before opening the PR** — every plan lists the exact commands. At minimum:
    ```bash
+   dotnet tool restore                    # csharpier, pinned in .config/dotnet-tools.json
    dotnet build Kbot.sln -warnaserror
-   dotnet test Kbot.sln --filter "TestCategory!=LiveExchange"
+   dotnet test Kbot.sln                   # bare — do NOT add --filter, see below
    dotnet csharpier check .
    ```
-   > ✅ **P1-01 is merged** (`58c2262`), so `dotnet test Kbot.sln` is safe by default — `.runsettings`
-   > excludes the `LiveExchange` / `LiveApi` categories and those tests additionally require
-   > `KBOT_ALLOW_LIVE_TRADING=1`. Never set that variable: `LiveExchange` places **real buy orders on
-   > live Kraken** and sends real mail. See
+   > ⚠️ **Run `dotnet test Kbot.sln` bare. Do not pass `--filter`.**
+   > `test/Directory.Build.props` applies the repo-root `.runsettings` only when
+   > `VSTestTestCaseFilter == ''`, so **a command-line `--filter` replaces the runsettings filter
+   > rather than narrowing it.** `--filter "TestCategory!=LiveExchange"` therefore *selects* the 8
+   > `LiveApi` tests: `TestQueryBalance`, `TestQueryClosedOrders`, `TestQueryAllClosedOrders`
+   > (live Kraken **private** endpoints, signed with whatever real keys your user-secrets hold),
+   > `TestQueryTicker`, and the four `HolidayServiceTest` cases against the live holiday API. Only
+   > the `LiveExchange` tests call `LiveGuard.RequireOptIn()`; **the `LiveApi` tests have no runtime
+   > guard at all**, so the category filter is the only thing holding them back. Bare
+   > `dotnet test Kbot.sln` honours `.runsettings` and runs 64 hermetic tests.
+   > ✅ **P1-01 is merged** (`58c2262`), so bare `dotnet test Kbot.sln` is safe by default:
+   > `.runsettings` excludes the `LiveExchange` and `LiveApi` categories, and the `LiveExchange`
+   > tests additionally require `KBOT_ALLOW_LIVE_TRADING=1`. Never set that variable —
+   > `LiveExchange` places **real buy orders on live Kraken** and sends real mail. See
    > [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
+   > ✅ **CI runs these too since P1-05 is merged** (#49).
+   > [.github/workflows/ci.yml](../../.github/workflows/ci.yml) runs build, test and
+   > `csharpier check` on every push and every PR, unfiltered by branch, so a PR into
+   > `review-and-fix` is gated. Run them locally anyway — a red CI run costs a round trip.
+   > `dotnet csharpier check .` needs `dotnet tool restore` first: csharpier is a *local* tool
+   > pinned to 1.3.0, and the command does not resolve to a globally installed copy.
 7. **PR title** = plan ID + title (e.g. `fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)`).
    PR body: link the plan file, list the finding IDs closed, and state what you verified.
 8. **Close the plan out in the same PR** — a final `docs:` commit that marks it resolved everywhere.
@@ -111,7 +128,7 @@ the Resolution section what you left out and which plan owns it.
 | P1-02 ✅ | C-2, C-3 | Guard the Kraken sentinel call sites *(resolved — #43)* | `fix/p1-c2-c3-guard-worker-sentinels` |
 | P1-03 ✅ | C-4 | Clamp the top-up day, persist state before bookkeeping *(resolved — #45)* | `fix/p1-c4-topup-day-clamp-and-state-order` |
 | P1-04 ✅ | C-5 | Worker loop resilience and backoff *(resolved — #46)* | `fix/p1-c5-worker-loop-resilience` |
-| P1-05 | H-3 | CI: build, test, format gate | `ci/p1-h3-build-test-lint-pipeline` |
+| P1-05 ✅ | H-3 | CI: build, test, format gate *(resolved — #49)* | `ci/p1-h3-build-test-lint-pipeline` |
 | P1-06 | H-4 | Fix the inert `.dockerignore` and the `secrets.json` copy | `fix/p1-h4-dockerignore-and-secret-copy` |
 | P1-07 | H-10 | Tighten the options validators | `fix/p1-h10-tighten-options-validators` |
 | P1-08 ✅ | H-11 | Remove the committed DB password and published port *(resolved — #44)* | `fix/p1-h11-database-credentials-exposure` |
