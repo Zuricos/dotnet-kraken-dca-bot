@@ -71,9 +71,11 @@ jobs:
       - name: Build
         run: dotnet build Kbot.sln --no-restore -c Release -warnaserror
 
-      # Belt and braces: `.runsettings` carries the same category filter, but a command-line
-      # `--filter` replaces it rather than being ANDed with it (see test/Directory.Build.props), so
-      # spell the exclusions out here as well.
+      # This `--filter` is the ONLY test-selection exclusion in this job — it does not stack with
+      # `.runsettings`. test/Directory.Build.props applies the settings file only when no
+      # command-line filter was passed, so passing one here REPLACES the category exclusion
+      # instead of being ANDed with it. Both category names must therefore be spelled out below;
+      # dropping either one selects tests that talk to live Kraken.
       - name: Test
         run: |
           dotnet test Kbot.sln \

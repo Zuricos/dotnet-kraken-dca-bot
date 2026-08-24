@@ -160,8 +160,7 @@ TimeComputeService.cs. Keep your edits local and minimal so a rebase stays trivi
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -196,8 +195,7 @@ alone. P1-04 also edits DcaWorker.cs. Keep edits local and minimal.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -233,8 +231,7 @@ merge last of the three. P2-07 also edits DailyReporter.cs.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -302,8 +299,7 @@ Enum.IsDefined check on OrderOptions.Type; do not add a second one.
 
 Rules:
 - Stay in scope. Do not fix findings the plan lists as belonging to another plan.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -372,8 +368,7 @@ This is the smallest plan in the set — expect well under an hour.
 
 Rules:
 - Stay in scope. Log sink configuration and secret templates belong to other plans.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section before you finish.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -408,8 +403,7 @@ by P2-03.
 
 Rules:
 - Stay in scope. Do NOT change double to decimal — that is P2-03.
-- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`. Run filtered
-  tests only.
+- `dotnet test Kbot.sln` is safe by default since P1-01 landed. Never set `KBOT_ALLOW_LIVE_TRADING=1`.
 - Conventional commit messages, one logical change each.
 - Verify with the commands in the plan's Verification section, including the de-DE / fr-FR runs.
 - Before opening the PR, close the plan out in a final docs: commit on your branch — the plan
@@ -507,8 +501,11 @@ see what is still open, then either dispatch the ready-to-paste agent prompts in
 one plan yourself. Whichever you do, the plan's PR also carries its own close-out docs — see
 "Closing out a plan" in docs/plans/README.md.
 
-Two hard rules before you touch anything: (1) `dotnet test Kbot.sln` places real buy orders on live
-Kraken and sends real email only if you opt in with KBOT_ALLOW_LIVE_TRADING=1 (P1-01 is merged) — never do; (2) each plan in
+Two hard rules before you touch anything: (1) run `dotnet test Kbot.sln` BARE. Never set
+KBOT_ALLOW_LIVE_TRADING=1 — that arms tests which place real buy orders on live Kraken and send real
+email. Never pass --filter either: it replaces the .runsettings category exclusion instead of
+narrowing it, and the LiveApi tests have no runtime guard, so a stray filter sends live signed reads
+to Kraken with whatever real keys are in user-secrets. See §2. (2) each plan in
 docs/plans/ has an explicit Out of scope list — respect it, because another plan owns those items
 and overlapping edits create merge conflicts.
 ```

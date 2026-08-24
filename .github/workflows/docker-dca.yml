@@ -8,8 +8,11 @@ on:
       - src/Kbot.Common/**
       - src/Kbot.DcaService/**
       - docker/**
-      # COPY'd into the image and able to break the build on their own — a
-      # Dependabot bump to Directory.Packages.props used to match nothing here.
+      # These govern the build the image is produced from, so a change to any of them can alter
+      # or break the shipped binaries on its own. Directory.Build.props, Directory.Packages.props
+      # and nuget.config are COPY'd into the image; Kbot.sln and global.json are not, but they
+      # decide which projects are built and which SDK builds them. A Dependabot bump to
+      # Directory.Packages.props used to match none of these filters.
       - Directory.Build.props
       - Directory.Packages.props
       - nuget.config
