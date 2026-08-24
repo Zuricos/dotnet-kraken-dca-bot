@@ -27,16 +27,26 @@ env:
   DOTNET_NOLOGO: "true"
   DOTNET_CLI_TELEMETRY_OPTOUT: "true"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
-  # The LiveExchange tests place REAL buy orders on live Kraken and send real mail. They are
-  # excluded twice below (the `--filter` and the `.runsettings` it stands in for), and each one
-  # additionally refuses to run unless this variable is exactly "1" — see test/Shared/LiveGuard.cs.
-  # Pinning it here means no inherited runner environment can ever arm them.
+  # The LiveExchange tests place REAL buy orders on live Kraken and send real mail.
+  #
+  # There is exactly ONE test-selection exclusion in this job: the `--filter` on the Test step.
+  # It does not stack with `.runsettings` — passing a command-line filter takes the settings file
+  # out of the picture entirely (see the Test step's comment). The other protections are not
+  # selection-level and are what actually makes this durable:
+  #   1. this variable, which LiveGuard.RequireOptIn() requires to be exactly "1"; pinning it to
+  #      "0" here means no inherited runner environment can arm the tests that spend money;
+  #   2. LiveGuard itself — but note it guards only the LiveExchange tests, NOT the LiveApi ones,
+  #      so do not weaken the `--filter` on the assumption that something else will catch it.
   KBOT_ALLOW_LIVE_TRADING: "0"
 
 jobs:
   ci:
     name: Build, test and format
     runs-on: ubuntu-latest
+    # The real run is ~45 s. Without this the job inherits the 360-minute default, and because
+    # both publish workflows call this workflow, one hung network read would hold a release
+    # hostage for six hours instead of going red.
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,9 +54,13 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          # There is no global.json; Directory.Build.props pins <TargetFramework>net10.0</TargetFramework>
-          # for every project, so the SDK band is derived from that.
-          dotnet-version: "10.0.x"
+          # Pinned via global.json, not a floating "10.0.x". The Build step below runs
+          # -warnaserror, so a runner picking up the first SDK that ships a new default warning
+          # would turn an unrelated PR red — and a gate that goes red for reasons its author did
+          # not cause is a gate people learn to ignore. global.json also keeps local and CI on the
+          # same compiler: before this pin the runner resolved 10.0.400 while the maintainer built
+          # on 10.0.300. `rollForward: latestPatch` still takes patches inside the 10.0.3xx band.
+          global-json-file: global.json
 
       - name: Restore .NET tools
         run: dotnet tool restore
