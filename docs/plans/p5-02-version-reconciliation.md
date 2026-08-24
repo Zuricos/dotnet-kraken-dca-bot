@@ -37,6 +37,15 @@ versions independently, so one root `VERSION` file cannot represent both images.
    Use the Keep-a-Changelog format the file already uses.
 3. Pin `example-compose.yaml` to versions that actually exist in GHCR, and add a comment telling users
    to pin rather than track `latest`.
+> **Expect a version step you did not cause.** P1-05 (#49) widened `compute-version`'s `paths:`
+> (= `change_path`) to include `Directory.Build.props`, `Directory.Packages.props`, `nuget.config`,
+> `Kbot.sln` and `global.json`. The action runs `bump_each_commit: true` with `minor_pattern: "feat"`
+> and counts matching commits since the last `dca-` / `mail-` tag, so commits that were previously
+> uncounted now count — `935ca73 fix: Bump the all group`, `3cf24ee fix: use central package
+> management`, and `33b2353 feat: dotnet 10 update`, which matches `minor_pattern`. The next publish
+> may therefore be a **minor** jump rather than a patch. Forward-only, no tag collision; do not treat
+> it as evidence of a versioning bug when reconciling GHCR tags against the CHANGELOG.
+
 4. Make the mismatch impossible to repeat: add a CI check — extend the `ci` job in
    [ci.yml](../../.github/workflows/ci.yml), which **P1-05** landed in #49 — that fails if
    the CHANGELOG's newest version does not match the computed version, or if `example-compose.yaml`

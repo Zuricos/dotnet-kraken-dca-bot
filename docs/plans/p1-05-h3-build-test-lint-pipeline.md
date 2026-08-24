@@ -131,6 +131,32 @@ Four things the scope implied but did not spell out:
   *caller's*, so the plan's literal group would put the direct CI run and the two publish-triggered
   runs of a `main` push in one group with `cancel-in-progress: true` — they would cancel each other.
 - `artifacts/` is now gitignored, since the test step writes its trx and coverage there.
+- **[global.json](../../global.json)** pins the SDK to 10.0.300 with `rollForward: latestPatch`, and
+  `setup-dotnet` reads it via `global-json-file`. A floating `10.0.x` next to `-warnaserror` means the
+  first SDK shipping a new default warning reddens an unrelated PR, and a gate that reddens for
+  reasons its author did not cause is a gate people learn to click through. The drift was already
+  real: the runner resolved **10.0.400** while the maintainer built on 10.0.300. Because the file now
+  exists it also joins both publish `paths:` filters and the `compute-version` input, per scope item 3.
+- **`timeout-minutes: 15`** on the job. The default is 360, this suite holds socket-opening tests held
+  back only by a filter, and the job is a `workflow_call` dependency of both publish workflows — so a
+  hang would sit on a release for six hours instead of going red. The real run is ~45 s.
+
+### One correction to the belt-and-braces claim in scope item 1
+
+Scope item 1 says to keep both the `--filter` and `.runsettings`, "belt and braces". **They do not
+stack.** `test/Directory.Build.props` applies `.runsettings` only when `VSTestTestCaseFilter == ''`, so
+passing `--filter` takes the settings file out of the picture: CI has exactly **one** selection-level
+exclusion, not two. The job is still safe, but through three *independent* layers rather than two
+stacked filters — the `--filter` itself, `KBOT_ALLOW_LIVE_TRADING="0"` pinned at workflow level, and
+`LiveGuard.RequireOptIn()`. Do not weaken the `--filter` expecting a runsettings backstop.
+
+The same misreading had a live consequence in the protocol docs, fixed here: `docs/plans/README.md`
+told every agent to run `dotnet test Kbot.sln --filter "TestCategory!=LiveExchange"` before opening a
+PR, which **selects** the 8 `LiveApi` tests (72 selected versus 64 for the bare command). Four of them
+call live Kraken *private* endpoints signed with the developer's real keys. **`LiveGuard` guards only
+the `LiveExchange` tests**, so nothing else stopped them. The documented command is now bare
+`dotnet test Kbot.sln`. Adding `LiveGuard.RequireOptIn()` to the `LiveApi` tests is a code change this
+plan does not own — **P1-01's gating is incomplete and this deserves its own finding.**
 
 The `docker` Dependabot block points at `/docker` rather than the plan's `/`: that ecosystem scans the
 named directory for Dockerfiles and compose files, and all of this repo's live under `docker/`, so `/`
@@ -154,3 +180,30 @@ intended first gate is roughly 60% lines / 50% branches, ratcheted upward.
 
 Follow-ups unblocked: **P2-09**, and **P5-03** / **P5-04**, which both wanted a working gate to point
 at. Every plan from here on gets its `build`, `test` and `csharpier` run automatically on the PR.
+
+### Things the gate does *not* buy, so nobody over-trusts it
+
+- **#48's `KBOT0001` guard is only partially enforced by CI.** The `GuardLocalOnlyFilesOutOfOutput`
+  target does run here, since this workflow builds `Kbot.sln`, and it catches an explicit
+  `<None Include="secrets.json" CopyToOutputDirectory="…" />`. But the shape H-4 actually had —
+  `<None Update="…">` metadata on a **gitignored** file — produces no MSBuild item when the file is
+  absent, and CI checks out from git. That exact regression is caught on a developer machine only.
+- **Widening `compute-version`'s `change_path` retroactively changes the commit count.** The action
+  runs `bump_each_commit: true` with `minor_pattern: "feat"`, and the version is a count of matching
+  commits since the last `dca-` / `mail-` tag. Commits like `935ca73 fix: Bump the all group` and
+  `33b2353 feat: dotnet 10 update` now count, so the next publish may be a **minor** jump rather than
+  the patch anyone expects. Forward-only, no tag collision — but **P5-02** should not have to
+  rediscover why the numbers stepped.
+- **After #48 lands, its new root `.dockerignore` is in neither publish `paths:` filter** (`docker/**`
+  covered the old location). A change to the file defining the whole build context would trigger no
+  publish — the same bug class this plan fixed. It does not exist on this branch, so **P2-09** owns it.
+- **Bare `push:` also fires on tag pushes**, so each release's `push-tag` step adds one more CI run
+  against a just-tested ref; `tags-ignore: ['**']` is the one-line fix if it ever becomes noise. And
+  `push` + `pull_request` both fire for a same-repo PR branch, so a PR into `main` touching both
+  services is up to **four** CI runs (branch push, `pull_request`, and both publish workflows' `ci`
+  children), not the three stated earlier. At ~45 s a run this is immaterial.
+- **The `ci.yml` `cancel-in-progress: true` reaches into the publish workflows.** A
+  `workflow_dispatch` while a push-triggered run of the same publish workflow is in flight shares the
+  concurrency group and cancels the older run's `ci` child, skipping its `build-and-publish`. That is
+  fail-closed and arguably right, but "I re-ran it manually and the earlier image never appeared" is
+  expected rather than a bug. Belongs with **P2-09**'s publish `concurrency:` work.
