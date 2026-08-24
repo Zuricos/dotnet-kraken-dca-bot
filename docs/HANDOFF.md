@@ -29,10 +29,15 @@ and P2-02.
 ## 2. Two hard rules
 
 1. ~~**Never run the full test suite with credentials configured.**~~ **Resolved by P1-01**
-   (`58c2262`). `dotnet test Kbot.sln` is now safe by default: `.runsettings` excludes the
-   `LiveExchange` and `LiveApi` categories, and each of those tests also refuses to run without
-   `KBOT_ALLOW_LIVE_TRADING=1`. Do **not** set that variable with real credentials configured — the
+   (`58c2262`). **Bare** `dotnet test Kbot.sln` is safe by default: `.runsettings` excludes the
+   `LiveExchange` and `LiveApi` categories. Do **not** set `KBOT_ALLOW_LIVE_TRADING=1` — the
    `LiveExchange` tests place real orders and send real mail.
+   **Do not pass `--filter` either.** `test/Directory.Build.props` applies `.runsettings` only when
+   no command-line filter was given, so `--filter` *replaces* the category exclusion instead of
+   narrowing it. Only the `LiveExchange` tests carry the `LiveGuard.RequireOptIn()` backstop; the 8
+   `LiveApi` tests have **no runtime guard**, so a stray `--filter` sends live signed reads to
+   Kraken. Closing that gap needs a code change nobody owns yet — see the note in
+   [plans/README.md](plans/README.md#working-protocol-for-agents) §6.
 2. **Stay inside your plan's scope.** Every plan has an explicit *Out of scope* list naming the plan
    that owns each deferred item. Fixing something outside your scope creates a merge conflict for
    another agent. Note it in the PR body instead.

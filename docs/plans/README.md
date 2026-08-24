@@ -33,20 +33,30 @@ prompts and the status board.
    ```bash
    dotnet tool restore                    # csharpier, pinned in .config/dotnet-tools.json
    dotnet build Kbot.sln -warnaserror
-   dotnet test Kbot.sln --filter "TestCategory!=LiveExchange"
+   dotnet test Kbot.sln                   # bare — do NOT add --filter, see below
    dotnet csharpier check .
    ```
+   > ⚠️ **Run `dotnet test Kbot.sln` bare. Do not pass `--filter`.**
+   > `test/Directory.Build.props` applies the repo-root `.runsettings` only when
+   > `VSTestTestCaseFilter == ''`, so **a command-line `--filter` replaces the runsettings filter
+   > rather than narrowing it.** `--filter "TestCategory!=LiveExchange"` therefore *selects* the 8
+   > `LiveApi` tests: `TestQueryBalance`, `TestQueryClosedOrders`, `TestQueryAllClosedOrders`
+   > (live Kraken **private** endpoints, signed with whatever real keys your user-secrets hold),
+   > `TestQueryTicker`, and the four `HolidayServiceTest` cases against the live holiday API. Only
+   > the `LiveExchange` tests call `LiveGuard.RequireOptIn()`; **the `LiveApi` tests have no runtime
+   > guard at all**, so the category filter is the only thing holding them back. Bare
+   > `dotnet test Kbot.sln` honours `.runsettings` and runs 64 hermetic tests.
+   > ✅ **P1-01 is merged** (`58c2262`), so bare `dotnet test Kbot.sln` is safe by default:
+   > `.runsettings` excludes the `LiveExchange` and `LiveApi` categories, and the `LiveExchange`
+   > tests additionally require `KBOT_ALLOW_LIVE_TRADING=1`. Never set that variable —
+   > `LiveExchange` places **real buy orders on live Kraken** and sends real mail. See
+   > [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
    > ✅ **CI runs these too since P1-05 is merged** (#49).
    > [.github/workflows/ci.yml](../../.github/workflows/ci.yml) runs build, test and
    > `csharpier check` on every push and every PR, unfiltered by branch, so a PR into
    > `review-and-fix` is gated. Run them locally anyway — a red CI run costs a round trip.
    > `dotnet csharpier check .` needs `dotnet tool restore` first: csharpier is a *local* tool
    > pinned to 1.3.0, and the command does not resolve to a globally installed copy.
-   > ✅ **P1-01 is merged** (`58c2262`), so `dotnet test Kbot.sln` is safe by default — `.runsettings`
-   > excludes the `LiveExchange` / `LiveApi` categories and those tests additionally require
-   > `KBOT_ALLOW_LIVE_TRADING=1`. Never set that variable: `LiveExchange` places **real buy orders on
-   > live Kraken** and sends real mail. See
-   > [p1-01-c1-gate-live-trading-tests.md](p1-01-c1-gate-live-trading-tests.md).
 7. **PR title** = plan ID + title (e.g. `fix: P1-02 guard the Kraken sentinel call sites (C-2, C-3)`).
    PR body: link the plan file, list the finding IDs closed, and state what you verified.
 8. **Close the plan out in the same PR** — a final `docs:` commit that marks it resolved everywhere.
